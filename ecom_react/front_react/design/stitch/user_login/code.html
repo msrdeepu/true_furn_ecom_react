@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sign In - Luxe Furnish</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1754cf",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md sticky top-0 z-50">
+<div class="flex items-center gap-2 text-primary">
+<div class="size-8 flex items-center justify-center bg-primary rounded-lg text-white">
+<span class="material-symbols-outlined text-xl">chair</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight tracking-tight">Luxe Furnish</h2>
+</div>
+<div class="hidden md:block">
+<a class="text-sm font-medium text-primary hover:underline" href="#">Return to Shop</a>
+</div>
+</header>
+<main class="flex-1 flex items-center justify-center p-6 md:p-12">
+<div class="w-full max-w-[440px] flex flex-col gap-8">
+<div class="flex flex-col gap-2 text-center">
+<h1 class="text-slate-900 dark:text-slate-100 text-3xl font-extrabold tracking-tight">Welcome Back</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base">Please enter your details to access your account</p>
+</div>
+<div class="flex flex-col gap-3">
+<button class="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-3 text-slate-700 dark:text-slate-200 font-semibold transition-colors hover:bg-slate-50 dark:hover:bg-slate-800">
+<img alt="Google Logo" class="size-5" data-alt="Google colorful letter G logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnmImyfZ9T09ap-YHejSmuCYCUodPNX26wILz5sioPqPUJFDwdo3as81Zj07WyC3CKPi_at2QmHqIH3IAngNtbCtx8NTcubFwnvPa7nYc6mSyF91BXeMK4kyNtNP4XigYWOj50T2-CuM9jR3ylWpEkm_TrZ9dF6BuNvFwMBC9nLnL4bFWeAsOuUqS-xvmBw_zlZVBwEWHpzBviZ1XQTUTOokVrhNqhLw-p30aSqEi_mQMpkioAbny8SA0pkgzf8aa0obC9jE67v-HO"/>
+<span>Continue with Google</span>
+</button>
+<button class="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-3 text-slate-700 dark:text-slate-200 font-semibold transition-colors hover:bg-slate-50 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined text-xl">ios</span>
+<span>Continue with Apple</span>
+</button>
+</div>
+<div class="relative flex items-center py-2">
+<div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+<span class="flex-shrink mx-4 text-slate-400 text-sm font-medium uppercase tracking-widest">or</span>
+<div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+</div>
+<form class="flex flex-col gap-5" onsubmit="return false;">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-slate-700 dark:text-slate-300" for="email">Email Address</label>
+<input class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-slate-900 dark:text-white focus:border-primary focus:ring-primary" id="email" placeholder="name@company.com" type="email"/>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<label class="text-sm font-bold text-slate-700 dark:text-slate-300" for="password">Password</label>
+<a class="text-xs font-semibold text-primary hover:text-primary/80" href="#">Forgot Password?</a>
+</div>
+<div class="relative">
+<input class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-slate-900 dark:text-white focus:border-primary focus:ring-primary" id="password" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" type="button">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-2 py-1">
+<input class="size-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer" id="remember" type="checkbox"/>
+<label class="text-sm text-slate-600 dark:text-slate-400 cursor-pointer select-none" for="remember">Remember me for 30 days</label>
+</div>
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]" type="submit">
+                            Sign In
+                        </button>
+</form>
+<div class="text-center pt-2">
+<p class="text-slate-600 dark:text-slate-400">
+                            Don't have an account? 
+                            <a class="text-primary font-bold hover:underline ml-1" href="#">Sign up for free</a>
+</p>
+</div>
+</div>
+</main>
+<footer class="p-6 text-center">
+<p class="text-xs text-slate-400 dark:text-slate-500">
+                    © 2024 Luxe Furnish. All rights reserved. 
+                    <span class="mx-2">|</span>
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<span class="mx-2">|</span>
+<a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+</p>
+</footer>
+</div>
+</div>
+</body></html>

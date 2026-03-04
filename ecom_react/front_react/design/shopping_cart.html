@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1754cf",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Shopping Cart - Luxe Furnish</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Navigation Header -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 px-6 md:px-20 py-4 bg-white dark:bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined text-3xl">chair</span>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-extrabold leading-tight tracking-tight">Luxe Furnish</h2>
+</div>
+<div class="hidden md:flex items-center">
+<label class="flex flex-col min-w-64 h-10">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-slate-500 flex border-none bg-slate-100 dark:bg-slate-800 items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-0 border-none bg-slate-100 dark:bg-slate-800 focus:border-none h-full placeholder:text-slate-500 px-4 rounded-l-none border-l-0 pl-2 text-sm font-normal" placeholder="Search furniture..." value=""/>
+</div>
+</label>
+</div>
+</div>
+<div class="flex flex-1 justify-end gap-4 md:gap-6 items-center">
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-full h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+<button class="relative flex items-center justify-center rounded-full h-10 w-10 bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">3</span>
+</button>
+<button class="flex items-center justify-center rounded-full h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">person</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 px-6 md:px-20 py-8 max-w-7xl mx-auto w-full">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 mb-8 text-sm font-medium">
+<a class="text-slate-500 hover:text-primary transition-colors" href="#">Home</a>
+<span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+<span class="text-slate-900 dark:text-slate-100">Shopping Cart</span>
+</nav>
+<div class="flex flex-col lg:flex-row gap-12">
+<!-- Cart Items Section -->
+<div class="flex-1">
+<div class="flex items-baseline justify-between mb-6">
+<h1 class="text-3xl font-black tracking-tight">Your Shopping Cart</h1>
+<span class="text-slate-500 font-medium">3 Items</span>
+</div>
+<div class="space-y-6">
+<!-- Item 1 -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-4 bg-white dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0" data-alt="Luxurious emerald green velvet accent chair" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDyzkdJna_ypY9IGoNPCYuIoMSTxwpOpzZkaz8fI7ub2z0kCIbzK_iaBLd-cRLsCMEiG-Rh_rdfPe07GYTg4aXudHd7zQCVk6zbyzgazMEIeE-0LyngVC5_L3iRvlKPw9Qvq95kn1VuDLTUUdV_VAGSpfexKBgivBTBvRUsEjDUKArJ33KOt8hETUu4cWiGUeBIzXl0cn4OCNWSd0kH9o-Ea5yxSMEa8VwxNvQq3kdf3PZeQ1ccyJ0J4KnekxFSthOD-E80hFULbWG9");'></div>
+<div class="flex-1 flex flex-col gap-1">
+<h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Velvet Accent Chair</h3>
+<p class="text-sm text-slate-500">Color: Emerald Green | SKU: LF-9920</p>
+<p class="text-primary font-bold mt-1">$450.00</p>
+<div class="flex items-center gap-4 mt-3">
+<div class="flex items-center rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-2 py-1">
+<button class="p-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-lg">remove</span></button>
+<span class="px-3 font-bold text-sm">1</span>
+<button class="p-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-lg">add</span></button>
+</div>
+<button class="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1 uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm">delete</span> Remove
+                                        </button>
+</div>
+</div>
+<div class="hidden sm:block text-right">
+<p class="text-lg font-black text-slate-900 dark:text-slate-100">$450.00</p>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-4 bg-white dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0" data-alt="Modern marble top coffee table with gold legs" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD1AmFY6PliAVCObX4sMcoHNxZ9sNadBdTExmi8KkRJd38v1-ANYotism_HEHlourccPQxPiotI5AWtAa2Fr9FibmUYtNofeZrWNMjc0Sk0wKVrPjNfZpjC_ts-rLY76rhxeni4YARk3frZp7x6WizeNUKSAykeMz76azY9KcscouSn_2m2uxwkojiQFaSPubzUTErtfmfONxbHVwRX_BwdpzoB37lfE6TIkkl91AoHVktKzXjPX1P59JM8ILVJGWQoqmNp6NX2nfor");'></div>
+<div class="flex-1 flex flex-col gap-1">
+<h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Marble Coffee Table</h3>
+<p class="text-sm text-slate-500">Size: Large | SKU: LF-1042</p>
+<p class="text-primary font-bold mt-1">$890.00</p>
+<div class="flex items-center gap-4 mt-3">
+<div class="flex items-center rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-2 py-1">
+<button class="p-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-lg">remove</span></button>
+<span class="px-3 font-bold text-sm">1</span>
+<button class="p-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-lg">add</span></button>
+</div>
+<button class="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1 uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm">delete</span> Remove
+                                        </button>
+</div>
+</div>
+<div class="hidden sm:block text-right">
+<p class="text-lg font-black text-slate-900 dark:text-slate-100">$890.00</p>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-4 bg-white dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0" data-alt="Soft gray modular fabric sofa" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAGd9WKE0LIYRRZXGLaAcXVt6oQqr5NcHSQXnRXc6fGjsJXrjqKGWBxXjyHzJyFVermgmUkqyQwnRmfDHI5TIs9rG0Mg8yZXj04PrCyetPYQAKdnRkjPqR_gaWotnpAfkD4pWBnqy0-ppuuttqrXTM4ptWyZJ5TBEoPUpX2qdr4qnglhQAlLUzn4fuH4g3LE-MJgc5ugUlRvmg8gsAnUUj7seczwXku90pTSZ_Ia5JKJ6N3JdXtRFhOcyEverD7QP3EfCnoNsVWGZjO");'></div>
+<div class="flex-1 flex flex-col gap-1">
+<h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Modular Fabric Sofa</h3>
+<p class="text-sm text-slate-500">Fabric: Oyster Grey | SKU: LF-2201</p>
+<p class="text-primary font-bold mt-1">$1,250.00</p>
+<div class="flex items-center gap-4 mt-3">
+<div class="flex items-center rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-2 py-1">
+<button class="p-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-lg">remove</span></button>
+<span class="px-3 font-bold text-sm">1</span>
+<button class="p-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-lg">add</span></button>
+</div>
+<button class="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1 uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm">delete</span> Remove
+                                        </button>
+</div>
+</div>
+<div class="hidden sm:block text-right">
+<p class="text-lg font-black text-slate-900 dark:text-slate-100">$1,250.00</p>
+</div>
+</div>
+</div>
+<div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+<a class="flex items-center gap-2 text-primary font-bold hover:underline" href="#">
+<span class="material-symbols-outlined">arrow_back</span> Continue Shopping
+                            </a>
+<div class="w-full sm:w-auto flex items-stretch gap-2">
+<input class="form-input flex-1 min-w-[200px] border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-sm focus:ring-primary focus:border-primary" placeholder="Promo code" type="text"/>
+<button class="bg-slate-900 dark:bg-slate-700 text-white px-6 py-2 rounded-lg font-bold hover:bg-slate-800 transition-colors text-sm">Apply</button>
+</div>
+</div>
+</div>
+<!-- Order Summary Section -->
+<aside class="w-full lg:w-[400px]">
+<div class="bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm lg:sticky lg:top-28">
+<h2 class="text-xl font-black mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">Order Summary</h2>
+<div class="space-y-4 mb-6">
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span>Subtotal</span>
+<span class="font-bold text-slate-900 dark:text-slate-100">$2,590.00</span>
+</div>
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span>Shipping Estimate</span>
+<span class="text-emerald-500 font-bold uppercase text-xs tracking-wider">Free</span>
+</div>
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span>Tax Estimate</span>
+<span class="font-bold text-slate-900 dark:text-slate-100">$207.20</span>
+</div>
+</div>
+<div class="border-t border-slate-100 dark:border-slate-800 pt-6 mb-8">
+<div class="flex justify-between items-baseline">
+<span class="text-lg font-bold">Total Order</span>
+<span class="text-2xl font-black text-primary">$2,797.20</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black text-lg transition-transform active:scale-[0.98] shadow-lg shadow-primary/25 mb-4 flex items-center justify-center gap-2">
+                                Proceed to Checkout
+                                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<div class="flex items-center justify-center gap-4 text-slate-400 pt-4">
+<span class="material-symbols-outlined text-xl">verified_user</span>
+<span class="text-[10px] uppercase font-bold tracking-[0.2em]">Secure Checkout Guaranteed</span>
+</div>
+<div class="mt-8 p-4 bg-primary/5 rounded-lg border border-primary/10">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-primary">local_shipping</span>
+<div>
+<p class="text-xs font-bold text-primary uppercase tracking-wider mb-1">Estimated Delivery</p>
+<p class="text-sm font-medium">Oct 24 - Oct 28</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer Section -->
+<footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-6 md:px-20 py-12 mt-20">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+<div class="col-span-1 md:col-span-1">
+<div class="flex items-center gap-3 text-primary mb-6">
+<span class="material-symbols-outlined text-3xl">chair</span>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-extrabold leading-tight tracking-tight">Luxe Furnish</h2>
+</div>
+<p class="text-slate-500 text-sm leading-relaxed">Crafting comfort and luxury for your modern living space since 1995.</p>
+</div>
+<div>
+<h4 class="font-bold mb-6">Shop</h4>
+<ul class="space-y-3 text-sm text-slate-500">
+<li><a class="hover:text-primary transition-colors" href="#">Living Room</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Bedroom</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Office</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Decor</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold mb-6">Support</h4>
+<ul class="space-y-3 text-sm text-slate-500">
+<li><a class="hover:text-primary transition-colors" href="#">Track Order</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Shipping Policy</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Returns &amp; Exchanges</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">FAQs</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold mb-6">Stay Connected</h4>
+<p class="text-sm text-slate-500 mb-4">Subscribe for exclusive offers and design tips.</p>
+<div class="flex gap-2">
+<input class="form-input flex-1 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs focus:ring-primary focus:border-primary" placeholder="Email address" type="email"/>
+<button class="bg-primary text-white p-2 rounded-lg hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+</div>
+</div>
+<div class="max-w-7xl mx-auto pt-12 mt-12 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6">
+<p class="text-xs text-slate-400">© 2024 Luxe Furnish. All rights reserved.</p>
+<div class="flex gap-6 text-slate-400">
+<a class="hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined">social_leaderboard</span></a>
+<a class="hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-base">close</span></a>
+<a class="hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined">video_library</span></a>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#1754cf",
+              "background-light": "#f6f6f8",
+              "background-dark": "#111621",
+            },
+            fontFamily: {
+              "display": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+<div class="relative flex flex-col min-h-screen w-full overflow-x-hidden">
+<!-- Navigation -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-20">
+<div class="flex items-center gap-12">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-3xl">chair</span>
+<h2 class="text-xl font-extrabold tracking-tight">LUXE FURNISH</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Collections</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Living Room</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Bedroom</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Office</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden lg:flex items-center bg-slate-200/50 dark:bg-slate-800/50 rounded-lg px-3 py-2">
+<span class="material-symbols-outlined text-slate-500 text-xl">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 placeholder-slate-500" placeholder="Search furniture..." type="text"/>
+</div>
+<button class="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<button class="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined">person</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-grow">
+<!-- Hero Section -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+<div class="space-y-8">
+<div class="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">
+                        New Collection 2024
+                    </div>
+<h1 class="text-5xl md:text-7xl font-black leading-tight tracking-tight">
+                        Elevate Your Space with <span class="text-primary">Timeless</span> Design
+                    </h1>
+<p class="text-lg text-slate-600 dark:text-slate-400 max-w-xl">
+                        Discover our curated collection of contemporary furniture, crafted for modern living and lasting comfort. Sustainable materials meet masterful craftsmanship.
+                    </p>
+<div class="flex items-center gap-4">
+<button class="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-primary/20">
+                            Shop Now
+                        </button>
+<button class="flex items-center gap-2 font-bold px-8 py-4 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-all">
+                            View Lookbook <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="relative">
+<div class="aspect-[4/5] w-full rounded-2xl overflow-hidden shadow-2xl">
+<img class="w-full h-full object-cover" data-alt="Modern minimal emerald green sofa in a bright living room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiilh-Tazwkh6k9coXcjo1wpUqJCB47BjrSDa_py9foAo_80cEn5aap3Os7v0wTOMcg9267UFViieJRXaHga0Aq-P9LttYp2CZWuzjq7BY24pDh3RxB22-ZzAEvtAnBwXwEARyrRcvtLZx9LS7W2lU09pQr90rdVZoK6vpLn5p7pBn_tFa2sedOz5ONpjXCkbEy5t4IrqpCqgjUV-ELa5bQPCafGkV-nIdjfgV14_ZDmTSqRYCfgfjuzWo5NnAu9pjd-efCzWu6pCn"/>
+</div>
+<div class="absolute -bottom-6 -left-6 bg-white dark:bg-background-dark p-6 rounded-2xl shadow-xl hidden sm:block border border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-4">
+<div class="flex -space-x-3">
+<div class="w-10 h-10 rounded-full border-2 border-white dark:border-background-dark bg-slate-300"></div>
+<div class="w-10 h-10 rounded-full border-2 border-white dark:border-background-dark bg-slate-400"></div>
+<div class="w-10 h-10 rounded-full border-2 border-white dark:border-background-dark bg-slate-500"></div>
+</div>
+<div>
+<p class="text-sm font-bold">2.5k+ Happy Customers</p>
+<p class="text-xs text-slate-500">Join our growing community</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Collections -->
+<section class="bg-white dark:bg-slate-900/50 py-24">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+<div class="max-w-xl">
+<h2 class="text-3xl font-bold mb-4">Featured Collections</h2>
+<p class="text-slate-600 dark:text-slate-400">Explore our signature series designed to harmonize with every corner of your home.</p>
+</div>
+<a class="text-primary font-bold flex items-center gap-1 group" href="#">
+                        Browse all collections <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">chevron_right</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="group relative overflow-hidden rounded-2xl aspect-[3/4] cursor-pointer">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Sleek modern living room furniture set" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAVkT360PGFttzAE2aT3usnBm_dBYbfrzT2IdQf17DT0ltaYit0dlYb7IDXPFJRsW9YYQd3DTI7K6Kf6Ug9qQgjM-atC0MU13idZFyLJKuXFJBbo-Ml8PPCXnYm-AZvs1xSDnnarbtzX8jC0zkpAkeVUPfpTiRLkEFvoNR1PJB_6RL15Q-imiGcOaZ0P7qmZucqMho1NIngkonx_xKGJ9ci4zQ6dU7vvRQm1K_OGtISpCELz0V9bYxkso_L_yLTtoZa5akKEC9Lkvf"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 text-white">
+<h3 class="text-2xl font-bold mb-2">Living Room</h3>
+<p class="text-sm text-slate-300 mb-4 opacity-0 group-hover:opacity-100 transition-opacity">Sofas, Coffee Tables, Lighting</p>
+<span class="text-sm font-bold underline underline-offset-4">Shop Collection</span>
+</div>
+</div>
+<div class="group relative overflow-hidden rounded-2xl aspect-[3/4] cursor-pointer">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Cozy minimalist bedroom with wooden accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMLZy1doiS-FhB6JOjdlAKrKoRzfRkBr7LJD_yWrRJPlpDLZEOmUA-Dc3Cc6rseksbqs7VbslO_XCbyOUiWLJXQRuPXfNwkqOmiNynzTynk43_yexS1gnL_wbBOxOdTJqsMVQV2DfHjEt6uMFJgwkNUzulp16SfPV2yezMmlvVtUpCgOgbnmu6gB0JoqklIZnQ7m2EyqimJAbjyHkTzEzEuj0C8hjXIUbyGi28CRcKexWDFv_Vkf6phMMP5yT6tYBCqwahmGxiVy1W"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 text-white">
+<h3 class="text-2xl font-bold mb-2">Bedroom</h3>
+<p class="text-sm text-slate-300 mb-4 opacity-0 group-hover:opacity-100 transition-opacity">Beds, Nightstands, Textiles</p>
+<span class="text-sm font-bold underline underline-offset-4">Shop Collection</span>
+</div>
+</div>
+<div class="group relative overflow-hidden rounded-2xl aspect-[3/4] cursor-pointer">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Professional and clean home office workspace" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhslV3MriTEtC8QTFn6QSBhEKsOlcVTI96-pcaaq7z3_WAu0OSQjjvpiacvZWcq8d9FKIpOJ5Kyf3DSy6Obh9pncvosUZfX7kzzfaW6lmm1I-tYEaiLH3-fHCtsJCC_sBzMzeYJ0JuUNBoJHSXAmFX6K8GpVvdaPaDr0oZ0WkrzZXmX4zrPMhZXJuCbPK7wg6-etLq4jGW-bmWQxmP-XrjzPtkg4JkaQrRB18U0CawPnsD1jmKnpHI8-kUI05dlb3Zhx_Gl0yMFcc8"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 text-white">
+<h3 class="text-2xl font-bold mb-2">Office</h3>
+<p class="text-sm text-slate-300 mb-4 opacity-0 group-hover:opacity-100 transition-opacity">Desks, Ergonomic Chairs, Storage</p>
+<span class="text-sm font-bold underline underline-offset-4">Shop Collection</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Trending Now Slider -->
+<section class="py-24 overflow-hidden">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<h2 class="text-3xl font-bold mb-12">Trending Now</h2>
+<div class="flex gap-8 overflow-x-auto pb-8 snap-x no-scrollbar">
+<!-- Product 1 -->
+<div class="min-w-[300px] flex-shrink-0 snap-start group">
+<div class="relative aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 mb-4">
+<img class="w-full h-full object-cover" data-alt="Designer mid-century modern wooden chair" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaPclcPUEE_iWnGrnJsEHI69E9rbZJMvf01BAPzrdiBsOBIBzMsQKqdzAqWuexgLX1SECDwcLJUQ4wLx-V4920sxccgW1ptNciqnaM16vIMnB0MuzhhFJ4GtYoI1mkkjWrZrblrSmYnXul2aAeCaqqiq3Hd47hlUAE2kQ3-TAp68uzbInphGLM_x0Ik1f4DV9eaQcJujF8io1TKe0TmEd5MeH-ZIpyJXJ_Dx3sLBd8IkCb_OIJJY4LKskBFoyWeyM7iGNOW1YrkltV"/>
+<button class="absolute bottom-4 right-4 bg-white text-slate-900 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+</button>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-bold text-lg">Nordic Oak Chair</h4>
+<div class="flex items-center gap-1 text-yellow-500">
+<span class="material-symbols-outlined text-sm fill-current">star</span>
+<span class="text-xs font-bold text-slate-600 dark:text-slate-400">4.9 (124)</span>
+</div>
+</div>
+<span class="font-bold text-primary">$249</span>
+</div>
+</div>
+<!-- Product 2 -->
+<div class="min-w-[300px] flex-shrink-0 snap-start group">
+<div class="relative aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 mb-4">
+<img class="w-full h-full object-cover" data-alt="Matte black modern desk lamp" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnyQer2ieNId7MqjKMhgsLV5gNNWHdvlVt2cl2kHAHchtCLOUO1KfsamN3sK9UaIaQhVQquIDnOP6BDdiDA7L7nnaDOc24qaobLolvPDCe08iJfr1ODLDAkMX4-ZIC5l4djApVY7JQP4OzEO01laM_hR_Wy1Q0SXft6o0muokFCOwUmddWmpxF7wTDrISTWrLtcPpQ9y7U-soTemAYUAvhQOrWl2kZxYoq8O-KwbmU5l8k1wOqdlDckS3ABwzlnffhr_ewejgNygdl"/>
+<button class="absolute bottom-4 right-4 bg-white text-slate-900 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+</button>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-bold text-lg">Lunar Desk Lamp</h4>
+<div class="flex items-center gap-1 text-yellow-500">
+<span class="material-symbols-outlined text-sm fill-current">star</span>
+<span class="text-xs font-bold text-slate-600 dark:text-slate-400">4.8 (89)</span>
+</div>
+</div>
+<span class="font-bold text-primary">$85</span>
+</div>
+</div>
+<!-- Product 3 -->
+<div class="min-w-[300px] flex-shrink-0 snap-start group">
+<div class="relative aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 mb-4">
+<img class="w-full h-full object-cover" data-alt="Round white marble coffee table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSIlXIXfqf9dgwPOJtnOnQo6mcu65MwE8WOiyvFiMSsuLVk-RfRQfOaXYm4D6C5Z_tMhMutX0rahdRvJqCsQkYBnIic31m7-_EEH1QUC6bohcbs_i51MaVMDx_D3jfzcsEMgZxw2CORFVK9yNCA_H8b5NMv9MqRi7oZfdIy5XtXyzgDtX9_A2sqDVPTn3rxX8Pncywxt2gUMNYxyld0y6rpuNQGd59xnilAnl6lKHAG2ms901t0eopamZk6kCT9G5YkMasUvBn-SZl"/>
+<button class="absolute bottom-4 right-4 bg-white text-slate-900 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+</button>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-bold text-lg">Marble Accent Table</h4>
+<div class="flex items-center gap-1 text-yellow-500">
+<span class="material-symbols-outlined text-sm fill-current">star</span>
+<span class="text-xs font-bold text-slate-600 dark:text-slate-400">5.0 (56)</span>
+</div>
+</div>
+<span class="font-bold text-primary">$399</span>
+</div>
+</div>
+<!-- Product 4 -->
+<div class="min-w-[300px] flex-shrink-0 snap-start group">
+<div class="relative aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 mb-4">
+<img class="w-full h-full object-cover" data-alt="Soft gray upholstered velvet lounge chair" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZq61gH-yTF97e44qn1IHy2GflKczdL4NLe4eOSNf7O1uUBgsetEwk0C1vgNbrxJSrZLnavYh-DSUMgaswlyj2arZdfHuZdmK4OBwesYHdHUaqnQCOQwwTH6X7k5GLDopyxKNO7PILz0ZoLvShprysXk1pnmSA6rUexFGLzLLMgj96R2dFaZun1As7PFk062SjzaEuQoUBOG03uO5mksWQnBY-a3btag9IY3y4HBJYjonQtQkfYwk76mDFW2cQ34fLqfxc3LrbIBFQ"/>
+<button class="absolute bottom-4 right-4 bg-white text-slate-900 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+</button>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-bold text-lg">Cloud Lounge Chair</h4>
+<div class="flex items-center gap-1 text-yellow-500">
+<span class="material-symbols-outlined text-sm fill-current">star</span>
+<span class="text-xs font-bold text-slate-600 dark:text-slate-400">4.7 (210)</span>
+</div>
+</div>
+<span class="font-bold text-primary">$640</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Our Story / Sustainability Section -->
+<section class="bg-primary text-white py-24 overflow-hidden relative">
+<div class="absolute right-0 top-0 w-1/3 h-full opacity-10 pointer-events-none">
+<svg height="100%" preserveaspectratio="none" viewbox="0 0 100 100" width="100%">
+<path d="M0,0 C30,40 70,60 100,100 L100,0 Z" fill="currentColor"></path>
+</svg>
+</div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<div class="grid grid-cols-2 gap-4">
+<img class="rounded-xl w-full h-64 object-cover mt-8" data-alt="Close up of carpenter's hands working with wood" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcMTn0bRrWmRa2sCUFLtiWRqm-YHTJYlKakrAgfmhDdIhbqGzKFDaJnvVyn0FVDi5BAEFRzZASI3icY5snmlTnMRiMO4ZqzPPZk6U17zUrfqypyQzfztEv8EH1csgr2ccQ0XfKbEGmel7Bd9lW7x2PTzc4LC1A9KxHuiQoQwUNrHK-WuGfAMhz3xBeO9VnoFUNHEZgR2YNMNOdcfLjrqZvpBc5Wl49t38lwXI8UfDoGOrq0JoqAgXf3gVKt-gwLYBVQB4JmFfsY3pl"/>
+<img class="rounded-xl w-full h-64 object-cover" data-alt="Raw sustainable oak wood planks" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIlbUGkhkYbXlDKF0jCrl3q2GR8urTLq-8kf-_sc_5JeuvYq3Ev44GTENpE71j8tfiQp2R7MSkUHeHUyCtssDL3KpLeImlyaDu71fNm48qZ0e2jgpbLMXCl0orPp4VENRRXtdx_8hr5JKCtUAhe8R_ehmCAaHeCc6qJsPUxi7HJDjEQ-SaJvLSBX4YNJgQMdOqf70NMae_BFVjJP-FOy02gtDMvxWuiS389IrrGZrG7YKbBzh6oWazRCXhdxt_dnyd0GeH9INk16DX"/>
+</div>
+<div class="space-y-6">
+<h2 class="text-4xl font-bold">Crafted with Conscious Purpose</h2>
+<p class="text-lg text-primary-100/80 leading-relaxed">
+                            Since 2012, LUXE FURNISH has been dedicated to bridging the gap between high-end design and environmental responsibility. Every piece is handmade using FSC-certified hardwoods and low-impact finishes.
+                        </p>
+<div class="grid grid-cols-2 gap-8 pt-6">
+<div>
+<span class="material-symbols-outlined text-4xl mb-2">eco</span>
+<h4 class="font-bold mb-1">100% Sustainable</h4>
+<p class="text-sm text-primary-100/60">Responsibly sourced materials only.</p>
+</div>
+<div>
+<span class="material-symbols-outlined text-4xl mb-2">handyman</span>
+<h4 class="font-bold mb-1">Lifetime Warranty</h4>
+<p class="text-sm text-primary-100/60">Built to last for generations.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Newsletter -->
+<section class="py-24 bg-background-light dark:bg-background-dark">
+<div class="max-w-4xl mx-auto px-4 text-center">
+<h2 class="text-3xl font-bold mb-4">Join Our Community</h2>
+<p class="text-slate-600 dark:text-slate-400 mb-8">Subscribe for exclusive early access to new collections and home styling tips from our designers.</p>
+<form class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+<input class="flex-grow px-6 py-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary focus:border-transparent outline-none" placeholder="Enter your email" type="email"/>
+<button class="bg-primary text-white px-8 py-4 rounded-xl font-bold transition-all hover:shadow-lg hover:shadow-primary/30">Subscribe</button>
+</form>
+<p class="text-xs text-slate-500 mt-4 italic">By subscribing, you agree to our Privacy Policy.</p>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pt-16 pb-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+<div class="space-y-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-2xl">chair</span>
+<h2 class="text-xl font-extrabold tracking-tight">LUXE FURNISH</h2>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-400">
+                        Designing for a better, more beautiful tomorrow. Your home, reimagined.
+                    </p>
+<div class="flex gap-4">
+<a class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white transition-colors" href="#">
+<i class="material-symbols-outlined text-sm">public</i>
+</a>
+<a class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white transition-colors" href="#">
+<i class="material-symbols-outlined text-sm">share</i>
+</a>
+<a class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white transition-colors" href="#">
+<i class="material-symbols-outlined text-sm">image</i>
+</a>
+</div>
+</div>
+<div>
+<h5 class="font-bold mb-6">Shop</h5>
+<ul class="space-y-4 text-sm text-slate-600 dark:text-slate-400">
+<li><a class="hover:text-primary transition-colors" href="#">All Products</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Living Room</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Bedroom</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Office</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">New Arrivals</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-bold mb-6">Company</h5>
+<ul class="space-y-4 text-sm text-slate-600 dark:text-slate-400">
+<li><a class="hover:text-primary transition-colors" href="#">Our Story</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Sustainability</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Careers</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Journal</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-bold mb-6">Support</h5>
+<ul class="space-y-4 text-sm text-slate-600 dark:text-slate-400">
+<li><a class="hover:text-primary transition-colors" href="#">Shipping &amp; Returns</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Track Order</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Help Center</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Contact Us</a></li>
+</ul>
+</div>
+</div>
+<div class="border-t border-slate-100 dark:border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+<p>© 2024 LUXE FURNISH Inc. All rights reserved.</p>
+<div class="flex gap-8">
+<a class="hover:text-slate-900 dark:hover:text-white" href="#">Privacy Policy</a>
+<a class="hover:text-slate-900 dark:hover:text-white" href="#">Terms of Service</a>
+<a class="hover:text-slate-900 dark:hover:text-white" href="#">Cookies</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+</body></html>
