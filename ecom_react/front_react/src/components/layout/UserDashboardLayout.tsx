@@ -1,5 +1,6 @@
 import { useState, type PropsWithChildren } from 'react'
 import { Icon } from '../ui/Icon'
+import { useAuth } from '../../context/AuthHook'
 
 type DashboardNavKey =
   | 'dashboard'
@@ -20,22 +21,22 @@ const navItems: Array<{
   label: string
   href: string
   icon:
-    | 'dashboard'
-    | 'order_history'
-    | 'location'
-    | 'payment'
-    | 'settings'
+  | 'dashboard'
+  | 'order_history'
+  | 'location'
+  | 'payment'
+  | 'settings'
 }> = [
-  { key: 'dashboard', label: 'Dashboard', href: '/account', icon: 'dashboard' },
-  { key: 'orders', label: 'Order History', href: '/account/orders', icon: 'order_history' },
-  {
-    key: 'addresses',
-    label: 'Shipping Addresses',
-    href: '/account/addresses',
-    icon: 'location',
-  },
-  { key: 'settings', label: 'Account Settings', href: '/account/settings', icon: 'settings' },
-]
+    { key: 'dashboard', label: 'Dashboard', href: '/account', icon: 'dashboard' },
+    { key: 'orders', label: 'Order History', href: '/account/orders', icon: 'order_history' },
+    {
+      key: 'addresses',
+      label: 'Shipping Addresses',
+      href: '/account/addresses',
+      icon: 'location',
+    },
+    { key: 'settings', label: 'Account Settings', href: '/account/settings', icon: 'settings' },
+  ]
 
 export function UserDashboardLayout({
   title,
@@ -46,6 +47,19 @@ export function UserDashboardLayout({
   children,
 }: UserDashboardLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const { user, logout } = useAuth()
+
+  const handleLogout = async () => {
+    await logout()
+    window.location.href = '/login'
+  }
+
+  const getInitials = () => {
+    if (!user?.name) return '??'
+    const namePart = user.name.charAt(0).toUpperCase()
+    const lnamePart = user.lname ? user.lname.charAt(0).toUpperCase() : ''
+    return `${namePart}${lnamePart}`
+  }
 
   return (
     <div className="dash-shell">
@@ -100,12 +114,20 @@ export function UserDashboardLayout({
         </nav>
 
         <div className="dash-user-card">
-          <div className="dash-user-avatar">AL</div>
-          <div>
-            <strong>Alexander Luxe</strong>
-            <p>Gold Member</p>
+          <div className="dash-user-avatar">
+            {user?.avatar ? (
+              <img src={user.avatar} alt={user.name} style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
+            ) : (
+              getInitials()
+            )}
           </div>
-          <button type="button">
+          <div>
+            <strong>{user?.name} {user?.lname}</strong>
+            <p style={{ fontSize: '0.75rem', color: 'var(--muted)', margin: '2px 0' }}>{user?.email}</p>
+            <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '4px' }}>{user?.phone || user?.mobile || 'No phone'}</p>
+
+          </div>
+          <button type="button" onClick={handleLogout}>
             <Icon className="icon-sm" name="logout" />
             Logout
           </button>

@@ -23,6 +23,7 @@ type IconName =
   | 'mail'
   | 'lock'
   | 'visibility'
+  | 'visibility_off'
   | 'close'
   | 'apple'
   | 'arrow_forward'
@@ -226,6 +227,15 @@ export function Icon({ name, className }: IconProps) {
         <svg {...commonProps}>
           <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
           <circle cx="12" cy="12" r="2.5" />
+        </svg>
+      )
+    case 'visibility_off':
+      return (
+        <svg {...commonProps}>
+          <path d="M17.9 17.4A10 10 0 0 1 12 19c-7 0-10-7-10-7a17.5 17.5 0 0 1 4.2-5.4" />
+          <path d="M9.2 4.6A9.5 9.5 0 0 1 12 4c7 0 10 7 10 7a17.6 17.6 0 0 1-1.8 2.7" />
+          <circle cx="12" cy="12" r="2.5" />
+          <line x1="2" y1="2" x2="22" y2="22" />
         </svg>
       )
     case 'close':

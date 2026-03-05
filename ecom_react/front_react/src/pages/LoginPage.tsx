@@ -1,6 +1,32 @@
+import { useState } from 'react'
 import { Icon } from '../components/ui/Icon'
+import { useAuth } from '../context/AuthHook'
+import { GoogleLoginButton } from '../components/auth/GoogleLoginButton'
 
 export function LoginPage() {
+  const { login } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !password) return
+    setError('')
+    setIsLoading(true)
+    try {
+      await login(email, password)
+      window.history.pushState({}, '', '/account/dashboard')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="auth-shell">
       <header className="auth-header">
@@ -8,7 +34,7 @@ export function LoginPage() {
           <div className="auth-brand-badge">
             <Icon name="chair" className="icon-sm" />
           </div>
-          <h2>Luxe Furnish</h2>
+          <h2>TRUE FURN</h2>
         </div>
         <a className="auth-return-link" href="/">
           Return to Shop
@@ -23,26 +49,25 @@ export function LoginPage() {
           </div>
 
           <div className="auth-socials">
-            <button className="auth-social-btn" type="button">
-              <img
-                alt="Google"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnmImyfZ9T09ap-YHejSmuCYCUodPNX26wILz5sioPqPUJFDwdo3as81Zj07WyC3CKPi_at2QmHqIH3IAngNtbCtx8NTcubFwnvPa7nYc6mSyF91BXeMK4kyNtNP4XigYWOj50T2-CuM9jR3ylWpEkm_TrZ9dF6BuNvFwMBC9nLnL4bFWeAsOuUqS-xvmBw_zlZVBwEWHpzBviZ1XQTUTOokVrhNqhLw-p30aSqEi_mQMpkioAbny8SA0pkgzf8aa0obC9jE67v-HO"
-              />
-              <span>Continue with Google</span>
-            </button>
-            <button className="auth-social-btn" type="button">
-              <Icon name="apple" className="icon-sm" />
-              <span>Continue with Apple</span>
-            </button>
+            <GoogleLoginButton />
           </div>
 
           <div className="auth-divider">
             <span>or</span>
           </div>
 
-          <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
+          <form className="auth-form" onSubmit={handleSubmit}>
+            {error && <p className="auth-error">{error}</p>}
+
             <label htmlFor="login-email">Email Address</label>
-            <input id="login-email" placeholder="name@company.com" type="email" />
+            <input
+              id="login-email"
+              placeholder="name@company.com"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
+            />
 
             <div className="field-head">
               <label htmlFor="login-password">Password</label>
@@ -52,10 +77,13 @@ export function LoginPage() {
               <input
                 id="login-password"
                 placeholder="********"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
               />
-              <button type="button">
-                <Icon name="visibility" className="icon-sm" />
+              <button type="button" onClick={() => setShowPassword((v) => !v)}>
+                <Icon name={showPassword ? 'visibility_off' : 'visibility'} className="icon-sm" />
               </button>
             </div>
 
@@ -64,13 +92,13 @@ export function LoginPage() {
               <span>Remember me for 30 days</span>
             </label>
 
-            <button className="btn-primary auth-submit" type="submit">
-              Sign In
+            <button className="btn-primary auth-submit" type="submit" disabled={isLoading}>
+              {isLoading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
 
           <p className="auth-switch">
-            Do not have an account?
+            Do not have an account?{' '}
             <a href="/signup">Sign up for free</a>
           </p>
         </div>
@@ -78,7 +106,7 @@ export function LoginPage() {
 
       <footer className="auth-footer">
         <p>
-          Copyright 2026 Luxe Furnish. All rights reserved.
+          Copyright 2026 TRUE FURN. All rights reserved.
           <span>|</span>
           <a href="#">Privacy Policy</a>
           <span>|</span>

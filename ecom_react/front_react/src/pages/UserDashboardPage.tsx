@@ -1,5 +1,6 @@
 import { UserDashboardLayout } from '../components/layout/UserDashboardLayout'
 import { Icon } from '../components/ui/Icon'
+import { useAuth } from '../context/AuthHook'
 
 const recentOrders = [
   { id: '#TF-99021', date: 'Oct 18, 2023', items: '1 Item', amount: 'Rs 34,999', status: 'Shipped' },
@@ -8,13 +9,16 @@ const recentOrders = [
 ]
 
 export function UserDashboardPage() {
+  const { user } = useAuth()
+  const displayName = user?.name || 'Customer'
+
   return (
     <UserDashboardLayout
       actionHref="/shop"
       actionLabel="Browse Shop"
       active="dashboard"
       subtitle="Your personalized interior inspiration and order status."
-      title="Welcome back, Alexander"
+      title={`Welcome back, ${displayName}`}
     >
       <div className="dash-stats single-stat">
         <article>

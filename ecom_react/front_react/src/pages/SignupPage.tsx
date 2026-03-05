@@ -1,6 +1,41 @@
+import { useState } from 'react'
 import { Icon } from '../components/ui/Icon'
+import { useAuth } from '../context/AuthHook'
+import { GoogleLoginButton } from '../components/auth/GoogleLoginButton'
 
 export function SignupPage() {
+  const { register } = useAuth()
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [passwordConfirmation, setPasswordConfirmation] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false)
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name || !email || !password || !passwordConfirmation) return
+
+    if (password !== passwordConfirmation) {
+      setError('Passwords do not match.')
+      return
+    }
+
+    setError('')
+    setIsLoading(true)
+    try {
+      await register(name, email, password, passwordConfirmation)
+      window.history.pushState({}, '', '/account/dashboard')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="auth-shell">
       <header className="auth-header">
@@ -8,7 +43,7 @@ export function SignupPage() {
           <div className="auth-brand-badge">
             <Icon name="chair" className="icon-sm" />
           </div>
-          <h2>Luxe Furnish</h2>
+          <h2>TRUE FURN</h2>
         </div>
         <a className="auth-close-btn" href="/">
           <Icon name="close" className="icon-sm" />
@@ -23,24 +58,16 @@ export function SignupPage() {
           </div>
 
           <div className="auth-socials">
-            <button className="auth-social-btn" type="button">
-              <img
-                alt="Google"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZnRhyPKJWEzv3HxRFNw19yzpkOqPf7IoqYV7fvLykCLK-xXYwfPvbXw1x03VSGfBJsj_pxVK2oUJXdwsOmKhJ1seMdcenZVnkjXpdd5qp9Q13rXiqk40i6dYHTJ3ACx7TLGUaqJG6jXdQhFtO0OrOEc31XZ72rIknLD1EkZYTWNrcoJUA1iL04pWrPHWOnx4Ojif3P8lgytwoNrBExZUb-z_4xM7atoDOEIvEYyw2kHi5ARoL_GE8P1qWhwqaPzrSiutJ2RzkRX03"
-              />
-              <span>Continue with Google</span>
-            </button>
-            <button className="auth-social-btn" type="button">
-              <Icon name="apple" className="icon-sm" />
-              <span>Continue with Apple</span>
-            </button>
+            <GoogleLoginButton />
           </div>
 
           <div className="auth-divider">
             <span>or</span>
           </div>
 
-          <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
+          <form className="auth-form" onSubmit={handleSubmit}>
+            {error && <p className="auth-error">{error}</p>}
+
             <label htmlFor="signup-name">Full Name</label>
             <div className="field-icon-left">
               <Icon name="person" className="icon-sm" />
@@ -48,6 +75,9 @@ export function SignupPage() {
                 id="signup-name"
                 placeholder="Enter your full name"
                 type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={isLoading}
               />
             </div>
 
@@ -58,35 +88,60 @@ export function SignupPage() {
                 id="signup-email"
                 placeholder="you@example.com"
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
               />
             </div>
 
             <label htmlFor="signup-password">Password</label>
-            <div className="field-icon-left">
+            <div className="field-icon-left field-icon-both">
               <Icon name="lock" className="icon-sm" />
               <input
                 id="signup-password"
-                placeholder="Create a strong password"
-                type="password"
+                placeholder="Create a strong password (min. 8 chars)"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
               />
+              <button type="button" onClick={() => setShowPassword((v) => !v)}>
+                <Icon name={showPassword ? 'visibility_off' : 'visibility'} className="icon-sm" />
+              </button>
+            </div>
+
+            <label htmlFor="signup-password-confirm">Confirm Password</label>
+            <div className="field-icon-left field-icon-both">
+              <Icon name="lock" className="icon-sm" />
+              <input
+                id="signup-password-confirm"
+                placeholder="Re-enter your password"
+                type={showPasswordConfirmation ? 'text' : 'password'}
+                value={passwordConfirmation}
+                onChange={(e) => setPasswordConfirmation(e.target.value)}
+                disabled={isLoading}
+              />
+              <button type="button" onClick={() => setShowPasswordConfirmation((v) => !v)}>
+                <Icon name={showPasswordConfirmation ? 'visibility_off' : 'visibility'} className="icon-sm" />
+              </button>
             </div>
 
             <label className="checkbox-row checkbox-row-top">
-              <input type="checkbox" />
+              <input type="checkbox" required />
               <span>
                 I agree to the <a href="#">Terms of Service</a> and{' '}
                 <a href="#">Privacy Policy</a>
               </span>
             </label>
 
-            <button className="btn-primary auth-submit" type="submit">
-              Create Account
-              <Icon name="arrow_forward" className="icon-sm" />
+            <button className="btn-primary auth-submit" type="submit" disabled={isLoading}>
+              {isLoading ? 'Creating account…' : 'Create Account'}
+              {!isLoading && <Icon name="arrow_forward" className="icon-sm" />}
             </button>
           </form>
 
           <p className="auth-switch">
-            Already have an account?
+            Already have an account?{' '}
             <a href="/login">Sign In</a>
           </p>
         </div>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useAuth } from './context/AuthHook'
 import { MainLayout } from './components/layout/MainLayout'
 import { UserDashboardLayout } from './components/layout/UserDashboardLayout'
 import { HomePage } from './pages/HomePage'
@@ -11,7 +12,6 @@ import { UserDashboardPage } from './pages/UserDashboardPage'
 import { UserOrderHistoryPage } from './pages/UserOrderHistoryPage'
 import { UserAccountSettingsPage } from './pages/UserAccountSettingsPage'
 import { UserShippingAddressesPage } from './pages/UserShippingAddressesPage'
-import { CartProvider } from './context/CartContext'
 
 function PageSkeleton() {
   return (
@@ -66,6 +66,7 @@ function App() {
   const [path, setPath] = useState(() => window.location.pathname.toLowerCase())
   const [isLoadingRoute, setIsLoadingRoute] = useState(false)
   const [loadingPath, setLoadingPath] = useState<string | null>(null)
+  const { isLoading: isAuthLoading } = useAuth()
 
   useEffect(() => {
     const onPopState = () => {
@@ -159,32 +160,22 @@ function App() {
     )
   }, [path])
 
-  if (isLoadingRoute) {
+  if (isAuthLoading || isLoadingRoute) {
     const targetPath = loadingPath ?? path
     if (isAuthPath(targetPath)) {
-      return (
-        <CartProvider>
-          <PageSkeleton />
-        </CartProvider>
-      )
+      return <PageSkeleton />
     }
     if (isDashboardPath(targetPath)) {
-      return (
-        <CartProvider>
-          <DashboardSkeleton />
-        </CartProvider>
-      )
+      return <DashboardSkeleton />
     }
     return (
-      <CartProvider>
-        <MainLayout>
-          <PageSkeleton />
-        </MainLayout>
-      </CartProvider>
+      <MainLayout>
+        <PageSkeleton />
+      </MainLayout>
     )
   }
 
-  return <CartProvider>{route}</CartProvider>
+  return <>{route}</>
 }
 
 export default App
