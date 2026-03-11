@@ -1,76 +1,91 @@
+import { useState, useMemo } from 'react'
 import { useCart } from '../context/CartContext'
+import { useProducts } from '../hooks/useProducts'
+import { getImageUrl } from '../api'
+import { Icon } from '../components/ui/Icon'
 
-const products = [
-  {
-    id: 'velvet-accent-chair',
-    badge: 'Best Seller',
-    rating: '4.8 (120)',
-    name: 'Velvet Accent Chair',
-    amount: 36999,
-    price: 'Rs 36,999',
-    meta: 'Color: Emerald Green | SKU: TF-9920',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuBiilh-Tazwkh6k9coXcjo1wpUqJCB47BjrSDa_py9foAo_80cEn5aap3Os7v0wTOMcg9267UFViieJRXaHga0Aq-P9LttYp2CZWuzjq7BY24pDh3RxB22-ZzAEvtAnBwXwEARyrRcvtLZx9LS7W2lU09pQr90rdVZoK6vpLn5p7pBn_tFa2sedOz5ONpjXCkbEy5t4IrqpCqgjUV-ELa5bQPCafGkV-nIdjfgV14_ZDmTSqRYCfgfjuzWo5NnAu9pjd-efCzWu6pCn',
-  },
-  {
-    id: 'minimalist-oak-desk',
-    badge: 'Sustainable',
-    rating: '4.9 (85)',
-    name: 'Minimalist Oak Desk',
-    amount: 69999,
-    price: 'Rs 69,999',
-    meta: 'Finish: Natural Oak | SKU: TF-3011',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCSIlXIXfqf9dgwPOJtnOnQo6mcu65MwE8WOiyvFiMSsuLVk-RfRQfOaXYm4D6C5Z_tMhMutX0rahdRvJqCsQkYBnIic31m7-_EEH1QUC6bohcbs_i51MaVMDx_D3jfzcsEMgZxw2CORFVK9yNCA_H8b5NMv9MqRi7oZfdIy5XtXyzgDtX9_A2sqDVPTn3rxX8Pncywxt2gUMNYxyld0y6rpuNQGd59xnilAnl6lKHAG2ms901t0eopamZk6kCT9G5YkMasUvBn-SZl',
-  },
-  {
-    id: 'leather-loveseat',
-    badge: 'New Arrival',
-    rating: '4.7 (200)',
-    name: 'Leather Loveseat',
-    amount: 98999,
-    price: 'Rs 98,999',
-    meta: 'Color: Tan | SKU: TF-4182',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAAVkT360PGFttzAE2aT3usnBm_dBYbfrzT2IdQf17DT0ltaYit0dlYb7IDXPFJRsW9YYQd3DTI7K6Kf6Ug9qQgjM-atC0MU13idZFyLJKuXFJBbo-Ml8PPCXnYm-AZvs1xSDnnarbtzX8jC0zkpAkeVUPfpTiRLkEFvoNR1PJB_6RL15Q-imiGcOaZ0P7qmZucqMho1NIngkonx_xKGJ9ci4zQ6dU7vvRQm1K_OGtISpCELz0V9bYxkso_L_yLTtoZa5akKEC9Lkvf',
-  },
-  {
-    id: 'marble-coffee-table',
-    badge: 'Handmade',
-    rating: '4.6 (45)',
-    name: 'Marble Coffee Table',
-    amount: 49999,
-    price: 'Rs 49,999',
-    meta: 'Size: Large | SKU: TF-1042',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCSIlXIXfqf9dgwPOJtnOnQo6mcu65MwE8WOiyvFiMSsuLVk-RfRQfOaXYm4D6C5Z_tMhMutX0rahdRvJqCsQkYBnIic31m7-_EEH1QUC6bohcbs_i51MaVMDx_D3jfzcsEMgZxw2CORFVK9yNCA_H8b5NMv9MqRi7oZfdIy5XtXyzgDtX9_A2sqDVPTn3rxX8Pncywxt2gUMNYxyld0y6rpuNQGd59xnilAnl6lKHAG2ms901t0eopamZk6kCT9G5YkMasUvBn-SZl',
-  },
-  {
-    id: 'modern-floor-lamp',
-    badge: 'Lighting',
-    rating: '4.8 (150)',
-    name: 'Modern Floor Lamp',
-    amount: 20999,
-    price: 'Rs 20,999',
-    meta: 'Matte Black | SKU: TF-5520',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAnyQer2ieNId7MqjKMhgsLV5gNNWHdvlVt2cl2kHAHchtCLOUO1KfsamN3sK9UaIaQhVQquIDnOP6BDdiDA7L7nnaDOc24qaobLolvPDCe08iJfr1ODLDAkMX4-ZIC5l4djApVY7JQP4OzEO01laM_hR_Wy1Q0SXft6o0muokFCOwUmddWmpxF7wTDrISTWrLtcPpQ9y7U-soTemAYUAvhQOrWl2kZxYoq8O-KwbmU5l8k1wOqdlDckS3ABwzlnffhr_ewejgNygdl',
-  },
-  {
-    id: 'walnut-dining-table',
-    badge: 'Limited Edition',
-    rating: '4.9 (30)',
-    name: 'Walnut Dining Table',
-    amount: 89999,
-    price: 'Rs 89,999',
-    meta: '6 Seater | SKU: TF-6210',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDhslV3MriTEtC8QTFn6QSBhEKsOlcVTI96-pcaaq7z3_WAu0OSQjjvpiacvZWcq8d9FKIpOJ5Kyf3DSy6Obh9pncvosUZfX7kzzfaW6lmm1I-tYEaiLH3-fHCtsJCC_sBzMzeYJ0JuUNBoJHSXAmFX6K8GpVvdaPaDr0oZ0WkrzZXmX4zrPMhZXJuCbPK7wg6-etLq4jGW-bmWQxmP-XrjzPtkg4JkaQrRB18U0CawPnsD1jmKnpHI8-kUI05dlb3Zhx_Gl0yMFcc8',
-  },
-]
+const PLACEHOLDER =
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuBiilh-Tazwkh6k9coXcjo1wpUqJCB47BjrSDa_py9foAo_80cEn5aap3Os7v0wTOMcg9267UFViieJRXaHga0Aq-P9LttYp2CZWuzjq7BY24pDh3RxB22-ZzAEvtAnBwXwEARyrRcvtLZx9LS7W2lU09pQr90rdVZoK6vpLn5p7pBn_tFa2sedOz5ONpjXCkbEy5t4IrqpCqgjUV-ELa5bQPCafGkV-nIdjfgV14_ZDmTSqRYCfgfjuzWo5NnAu9pjd-efCzWu6pCn'
+
+type SortKey = 'featured' | 'price-asc' | 'price-desc'
+
+function formatPrice(n: number) {
+  return `Rs ${n.toLocaleString('en-IN')}`
+}
 
 export function ShopPage() {
   const { addToCart } = useCart()
+  const { variants, products, isLoading, error } = useProducts()
+  const [sort, setSort] = useState<SortKey>('featured')
+  const [selectedRoomTypes, setSelectedRoomTypes] = useState<string[]>([])
+  const [priceRange, setPriceRange] = useState<[number, number] | null>(null)
+
+  // Build unique room types from products for filter
+  const roomTypes = useMemo(() => {
+    const types = products.map((p) => p.room_type).filter(Boolean) as string[]
+    return [...new Set(types)].sort()
+  }, [products])
+
+  const toggleRoomType = (rt: string) => {
+    setSelectedRoomTypes((prev) =>
+      prev.includes(rt) ? prev.filter((x) => x !== rt) : [...prev, rt]
+    )
+  }
+
+  // Map product_id → room_type for filtering
+  const productRoomMap = useMemo(() => {
+    const m: Record<string, string> = {}
+    products.forEach((p) => { m[String(p.id)] = p.room_type ?? '' })
+    return m
+  }, [products])
+
+  // Compute min/max price bounds from live data
+  const { minPrice, maxPrice } = useMemo(() => {
+    // Case-insensitive check for 'active'
+    const active = variants.filter((v) => v.variant?.status?.toLowerCase() === 'active')
+    if (active.length === 0) return { minPrice: 0, maxPrice: 1000000 }
+    const prices = active.map((v) => +(v.pricing?.selling_price || v.pricing?.mrp || 0))
+    return { minPrice: Math.min(...prices), maxPrice: Math.max(...prices) }
+  }, [variants])
+
+  // Initialise price range once data loads
+  const effectivePriceRange: [number, number] = priceRange ?? [minPrice, maxPrice]
+
+  const sorted = useMemo(() => {
+    let list = variants.filter((v) => v.variant?.status?.toLowerCase() === 'active')
+
+    if (selectedRoomTypes.length > 0) {
+      list = list.filter((v) => selectedRoomTypes.includes(productRoomMap[String(v.product?.id)]))
+    }
+
+    // Price range filter
+    const [lo, hi] = priceRange ?? [minPrice, maxPrice]
+    list = list.filter((v) => {
+      const p = +(v.pricing?.selling_price || v.pricing?.mrp || 0)
+      return p >= lo && p <= hi
+    })
+
+    if (sort === 'price-asc') return [...list].sort((a, b) => +(a.pricing?.selling_price || a.pricing?.mrp || 0) - +(b.pricing?.selling_price || b.pricing?.mrp || 0))
+    if (sort === 'price-desc') return [...list].sort((a, b) => +(b.pricing?.selling_price || b.pricing?.mrp || 0) - +(a.pricing?.selling_price || a.pricing?.mrp || 0))
+    return list
+  }, [variants, sort, selectedRoomTypes, productRoomMap, priceRange, minPrice, maxPrice])
+
+  const getVariantImage = (images: string[]) => {
+    const first = images[0]
+    return getImageUrl(first) ?? PLACEHOLDER
+  }
+
+  if (error) {
+    return (
+      <section className="shop-page">
+        <div className="container">
+          <p style={{ color: 'var(--clr-error, #e53e3e)', padding: '2rem 0' }}>
+            Failed to load products: {error}
+          </p>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="shop-page">
@@ -89,161 +104,204 @@ export function ShopPage() {
             <p>
               Curated collection of premium pieces designed for timeless comfort
               and modern elegance.
+              {!isLoading && <> &mdash; <strong>{sorted.length}</strong> items</>}
             </p>
           </div>
           <div className="shop-sort">
             <label htmlFor="sort-by">Sort by</label>
-            <select id="sort-by" defaultValue="Featured">
-              <option>Featured</option>
-              <option>Price Low to High</option>
-              <option>Price High to Low</option>
-              <option>Best Rating</option>
+            <select
+              id="sort-by"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+            >
+              <option value="featured">Featured</option>
+              <option value="price-asc">Price Low to High</option>
+              <option value="price-desc">Price High to Low</option>
             </select>
           </div>
         </div>
 
         <div className="shop-layout">
           <aside className="shop-filters">
+            {/* Room Type filter */}
             <div className="filter-group">
-              <h3>Category</h3>
-              <label className="filter-row">
-                <input type="checkbox" />
-                <span>Sofas</span>
-                <small>24</small>
-              </label>
-              <label className="filter-row active">
-                <input defaultChecked type="checkbox" />
-                <span>Chairs</span>
-                <small>18</small>
-              </label>
-              <label className="filter-row">
-                <input type="checkbox" />
-                <span>Tables</span>
-                <small>12</small>
-              </label>
-              <label className="filter-row">
-                <input type="checkbox" />
-                <span>Lighting</span>
-                <small>31</small>
-              </label>
-              <label className="filter-row">
-                <input type="checkbox" />
-                <span>Bedroom</span>
-                <small>15</small>
-              </label>
+              <h3>Room Type</h3>
+              {roomTypes.length === 0 && isLoading ? (
+                <div className="skeleton-line skeleton-line-sm" style={{ width: '80%' }} />
+              ) : (
+                roomTypes.map((rt) => (
+                  <label
+                    className={`filter-row${selectedRoomTypes.includes(rt) ? ' active' : ''}`}
+                    key={rt}
+                  >
+                    <input
+                      checked={selectedRoomTypes.includes(rt)}
+                      onChange={() => toggleRoomType(rt)}
+                      type="checkbox"
+                    />
+                    <span>{rt}</span>
+                  </label>
+                ))
+              )}
+              {selectedRoomTypes.length > 0 && (
+                <button
+                  className="shop-btn-view"
+                  onClick={() => setSelectedRoomTypes([])}
+                  style={{ marginTop: '0.5rem', fontSize: '0.75rem' }}
+                  type="button"
+                >
+                  Clear filter
+                </button>
+              )}
             </div>
 
+            {/* Price Range filter */}
             <div className="filter-group">
               <h3>Price Range</h3>
-              <input
-                className="price-range"
-                type="range"
-                min={0}
-                max={100000}
-                defaultValue={45000}
-              />
-              <div className="range-labels">
-                <span>Rs 0</span>
-                <span>Rs 1,00,000+</span>
-              </div>
+              {isLoading ? (
+                <div className="skeleton-line skeleton-line-sm" style={{ width: '100%' }} />
+              ) : (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.82rem', fontWeight: 600 }}>
+                    <span>{formatPrice(effectivePriceRange[0])}</span>
+                    <span>{formatPrice(effectivePriceRange[1])}</span>
+                  </div>
+                  <input
+                    className="price-range"
+                    type="range"
+                    min={minPrice}
+                    max={maxPrice}
+                    value={effectivePriceRange[0]}
+                    onChange={(e) => {
+                      const val = Math.min(+e.target.value, effectivePriceRange[1] - 1)
+                      setPriceRange([val, effectivePriceRange[1]])
+                    }}
+                    style={{ marginBottom: '0.4rem' }}
+                  />
+                  <input
+                    className="price-range"
+                    type="range"
+                    min={minPrice}
+                    max={maxPrice}
+                    value={effectivePriceRange[1]}
+                    onChange={(e) => {
+                      const val = Math.max(+e.target.value, effectivePriceRange[0] + 1)
+                      setPriceRange([effectivePriceRange[0], val])
+                    }}
+                  />
+                  <div className="range-labels" style={{ marginTop: '0.25rem' }}>
+                    <span>{formatPrice(minPrice)}</span>
+                    <span>{formatPrice(maxPrice)}</span>
+                  </div>
+                  {priceRange && (
+                    <button
+                      className="shop-btn-view"
+                      onClick={() => setPriceRange(null)}
+                      style={{ marginTop: '0.5rem', fontSize: '0.75rem' }}
+                      type="button"
+                    >
+                      Reset range
+                    </button>
+                  )}
+                </>
+              )}
             </div>
 
-            <div className="filter-group">
-              <h3>Material</h3>
-              <label className="filter-row">
-                <input type="checkbox" />
-                <span>Wood</span>
-              </label>
-              <label className="filter-row">
-                <input type="checkbox" />
-                <span>Metal</span>
-              </label>
-              <label className="filter-row">
-                <input type="checkbox" />
-                <span>Fabric</span>
-              </label>
-              <label className="filter-row active">
-                <input defaultChecked type="checkbox" />
-                <span>Velvet</span>
-              </label>
-            </div>
-
-            <div className="filter-group">
-              <h3>Color</h3>
-              <div className="color-pills">
-                <button className="color-pill color-blue active" type="button"></button>
-                <button className="color-pill color-white" type="button"></button>
-                <button className="color-pill color-brown" type="button"></button>
-                <button className="color-pill color-green" type="button"></button>
-                <button className="color-pill color-light-blue" type="button"></button>
-              </div>
-            </div>
-
+            {/* Availability */}
             <div className="filter-group">
               <h3>Availability</h3>
               <label className="filter-row active">
-                <input defaultChecked type="checkbox" />
-                <span>In stock</span>
-              </label>
-              <label className="filter-row">
-                <input type="checkbox" />
-                <span>New arrivals</span>
+                <input defaultChecked readOnly type="checkbox" />
+                <span>In Stock</span>
               </label>
             </div>
           </aside>
 
           <div className="shop-products">
-            <div className="shop-grid">
-              {products.map((item) => (
-                <article key={item.name} className="shop-card">
-                  <div className="shop-image-wrap">
-                    <a href="/product">
-                      <img src={item.image} alt={item.name} />
-                    </a>
-                  </div>
-                  <div className="shop-card-body">
-                    <div className="shop-card-top">
-                      <small>{item.badge}</small>
-                      <span>{`* ${item.rating}`}</span>
+            {isLoading ? (
+              <div className="shop-grid">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <article className="shop-card" key={i}>
+                    <div className="shop-image-wrap">
+                      <div className="skeleton-card" style={{ height: '220px', borderRadius: '12px' }} />
                     </div>
-                    <h4>{item.name}</h4>
-                    <strong>{item.price}</strong>
-                    <div className="shop-card-actions">
-                      <button
-                        className="shop-btn-add"
-                        onClick={() =>
-                          addToCart({
-                            id: item.id,
-                            name: item.name,
-                            price: item.amount,
-                            image: item.image,
-                            meta: item.meta,
-                          })
-                        }
-                        type="button"
-                      >
-                        Add to Cart
-                      </button>
-                      <a className="shop-btn-view" href="/product">
-                        View Details
-                      </a>
+                    <div className="shop-card-body">
+                      <div className="skeleton-line skeleton-line-sm" />
+                      <div className="skeleton-line skeleton-line-lg" style={{ margin: '0.5rem 0' }} />
                     </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="shop-grid">
+                {sorted.map((variant) => {
+                  const imgSrc = getVariantImage(variant.media?.images || [])
+                  const price = +(variant.pricing?.selling_price || variant.pricing?.mrp || 0)
+                  const mrp = +(variant.pricing?.mrp || 0)
+                  const hasDiscount = mrp > price
+                  const discountPct = hasDiscount ? Math.round(((mrp - price) / mrp) * 100) : 0
+                  const isOffer = variant.offer?.active || false
+                  const badge = (isOffer && discountPct > 0) ? `${discountPct}% OFF` : (variant.inventory?.quantity || variant.inventory?.stock_status || 'In Stock')
+                  const variantDisplayName = variant.variant?.name || variant.product?.name || 'Unnamed Product'
 
-            <div className="shop-pagination">
-              <button type="button">{'<'}</button>
-              <button className="active" type="button">
-                1
-              </button>
-              <button type="button">2</button>
-              <button type="button">3</button>
-              <span>...</span>
-              <button type="button">12</button>
-              <button type="button">{'>'}</button>
-            </div>
+                  return (
+                    <article key={variant.id} className="shop-card">
+                      <div className="shop-image-wrap">
+                        <a href={`/product?vid=${variant.id}`}>
+                          <img src={imgSrc} alt={variantDisplayName} />
+                        </a>
+                      </div>
+                      <div className="shop-card-body">
+                        <div className="shop-card-top">
+                          <small>{badge}</small>
+                          <span>{variant.product?.name}</span>
+                        </div>
+                        <h4>{variantDisplayName}</h4>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+                          <strong>{formatPrice(price)}</strong>
+                          {hasDiscount && (
+                            <small style={{ textDecoration: 'line-through', opacity: 0.5 }}>
+                              {formatPrice(mrp)}
+                            </small>
+                          )}
+                        </div>
+                        {variant.attributes?.material && (
+                          <small style={{ opacity: 0.6 }}>
+                            {variant.attributes.material}{variant.attributes.color ? ` · ${variant.attributes.color}` : ''}
+                          </small>
+                        )}
+                        <div className="shop-card-actions">
+                          <button
+                            className="shop-btn-add"
+                            onClick={() =>
+                              addToCart({
+                                id: `variant-${variant.id}`,
+                                name: `${variant.product?.name || 'Product'} – ${variantDisplayName}`,
+                                price,
+                                image: imgSrc,
+                                meta: variant.variant?.sku ? `SKU: ${variant.variant.sku}` : undefined,
+                              })
+                            }
+                            type="button"
+                          >
+                            Add to Cart
+                          </button>
+                          <a className="shop-btn-view" href={`/product?vid=${variant.id}`}>
+                            View Details
+                          </a>
+                        </div>
+                      </div>
+                    </article>
+                  )
+                })}
+                {sorted.length === 0 && (
+                  <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', opacity: 0.5 }}>
+                    <Icon name="image" className="icon-lg" />
+                    <p>No products found for selected filters.</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

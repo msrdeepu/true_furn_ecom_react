@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from './context/AuthHook'
+import { ToastProvider } from './context/ToastContext'
 import { MainLayout } from './components/layout/MainLayout'
 import { UserDashboardLayout } from './components/layout/UserDashboardLayout'
 import { HomePage } from './pages/HomePage'
@@ -10,8 +11,10 @@ import { ShopPage } from './pages/ShopPage'
 import { SignupPage } from './pages/SignupPage'
 import { UserDashboardPage } from './pages/UserDashboardPage'
 import { UserOrderHistoryPage } from './pages/UserOrderHistoryPage'
+import { UserOrderDetailPage } from './pages/UserOrderDetailPage'
 import { UserAccountSettingsPage } from './pages/UserAccountSettingsPage'
 import { UserShippingAddressesPage } from './pages/UserShippingAddressesPage'
+import { SitePage } from './pages/SitePage'
 
 function PageSkeleton() {
   return (
@@ -54,7 +57,8 @@ function isDashboardPath(path: string) {
     path === '/account/dashboard' ||
     path === '/account/orders' ||
     path === '/account/addresses' ||
-    path === '/account/settings'
+    path === '/account/settings' ||
+    path.startsWith('/account/orders/')
   )
 }
 
@@ -91,7 +95,7 @@ function App() {
 
       const url = new URL(anchor.href, window.location.origin)
       if (url.origin !== window.location.origin) return
-      if (url.pathname === window.location.pathname) return
+      if (url.pathname === window.location.pathname && url.search === window.location.search) return
 
       event.preventDefault()
       setIsLoadingRoute(true)
@@ -133,6 +137,9 @@ function App() {
     if (path === '/account/orders') {
       return <UserOrderHistoryPage />
     }
+    if (path.startsWith('/account/orders/')) {
+      return <UserOrderDetailPage />
+    }
     if (path === '/account/addresses') {
       return <UserShippingAddressesPage />
     }
@@ -150,6 +157,41 @@ function App() {
       return (
         <MainLayout>
           <ProductDetailPage />
+        </MainLayout>
+      )
+    }
+    if (path === '/terms-condition') {
+      return (
+        <MainLayout>
+          <SitePage slug="terms-condition" />
+        </MainLayout>
+      )
+    }
+    if (path === '/shipping-policy') {
+      return (
+        <MainLayout>
+          <SitePage slug="shipping-policy" />
+        </MainLayout>
+      )
+    }
+    if (path === '/refund-policy') {
+      return (
+        <MainLayout>
+          <SitePage slug="refund-policy" />
+        </MainLayout>
+      )
+    }
+    if (path === '/privacy-policy') {
+      return (
+        <MainLayout>
+          <SitePage slug="privacy-policy" />
+        </MainLayout>
+      )
+    }
+    if (path === '/disclaimer') {
+      return (
+        <MainLayout>
+          <SitePage slug="disclaimer" />
         </MainLayout>
       )
     }
@@ -175,7 +217,11 @@ function App() {
     )
   }
 
-  return <>{route}</>
+  return (
+    <ToastProvider>
+      {route}
+    </ToastProvider>
+  )
 }
 
 export default App

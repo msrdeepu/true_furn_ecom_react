@@ -14,6 +14,7 @@ type UserDashboardLayoutProps = PropsWithChildren<{
   active?: DashboardNavKey
   actionLabel?: string
   actionHref?: string
+  onAction?: () => void
 }>
 
 const navItems: Array<{
@@ -44,6 +45,7 @@ export function UserDashboardLayout({
   active = 'dashboard',
   actionLabel,
   actionHref = '/shop',
+  onAction,
   children,
 }: UserDashboardLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -138,6 +140,15 @@ export function UserDashboardLayout({
         <header className="dash-topbar">
           <h2>{title}</h2>
           <div className="dash-top-actions">
+            {actionLabel && (
+              <button 
+                className="dash-head-btn-top" 
+                onClick={onAction}
+                type="button"
+              >
+                {actionLabel}
+              </button>
+            )}
             <button className="icon-btn" type="button">
               <Icon className="icon-sm" name="bell" />
             </button>

@@ -1,5 +1,7 @@
 import { Icon } from '../components/ui/Icon'
 import { useCart } from '../context/CartContext'
+import { useProducts } from '../hooks/useProducts'
+import { getImageUrl } from '../api'
 
 const featuredItems = [
   {
@@ -22,47 +24,15 @@ const featuredItems = [
   },
 ]
 
-const trendingItems = [
-  {
-    id: 'nordic-oak-chair',
-    name: 'Nordic Oak Chair',
-    rating: '4.9 (124)',
-    amount: 20499,
-    price: 'Rs 20,499',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAaPclcPUEE_iWnGrnJsEHI69E9rbZJMvf01BAPzrdiBsOBIBzMsQKqdzAqWuexgLX1SECDwcLJUQ4wLx-V4920sxccgW1ptNciqnaM16vIMnB0MuzhhFJ4GtYoI1mkkjWrZrblrSmYnXul2aAeCaqqiq3Hd47hlUAE2kQ3-TAp68uzbInphGLM_x0Ik1f4DV9eaQcJujF8io1TKe0TmEd5MeH-ZIpyJXJ_Dx3sLBd8IkCb_OIJJY4LKskBFoyWeyM7iGNOW1YrkltV',
-  },
-  {
-    id: 'lunar-desk-lamp',
-    name: 'Lunar Desk Lamp',
-    rating: '4.8 (89)',
-    amount: 6999,
-    price: 'Rs 6,999',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAnyQer2ieNId7MqjKMhgsLV5gNNWHdvlVt2cl2kHAHchtCLOUO1KfsamN3sK9UaIaQhVQquIDnOP6BDdiDA7L7nnaDOc24qaobLolvPDCe08iJfr1ODLDAkMX4-ZIC5l4djApVY7JQP4OzEO01laM_hR_Wy1Q0SXft6o0muokFCOwUmddWmpxF7wTDrISTWrLtcPpQ9y7U-soTemAYUAvhQOrWl2kZxYoq8O-KwbmU5l8k1wOqdlDckS3ABwzlnffhr_ewejgNygdl',
-  },
-  {
-    id: 'marble-accent-table',
-    name: 'Marble Accent Table',
-    rating: '5.0 (56)',
-    amount: 32999,
-    price: 'Rs 32,999',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCSIlXIXfqf9dgwPOJtnOnQo6mcu65MwE8WOiyvFiMSsuLVk-RfRQfOaXYm4D6C5Z_tMhMutX0rahdRvJqCsQkYBnIic31m7-_EEH1QUC6bohcbs_i51MaVMDx_D3jfzcsEMgZxw2CORFVK9yNCA_H8b5NMv9MqRi7oZfdIy5XtXyzgDtX9_A2sqDVPTn3rxX8Pncywxt2gUMNYxyld0y6rpuNQGd59xnilAnl6lKHAG2ms901t0eopamZk6kCT9G5YkMasUvBn-SZl',
-  },
-  {
-    id: 'cloud-lounge-chair',
-    name: 'Cloud Lounge Chair',
-    rating: '4.7 (210)',
-    amount: 52999,
-    price: 'Rs 52,999',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAZq61gH-yTF97e44qn1IHy2GflKczdL4NLe4eOSNf7O1uUBgsetEwk0C1vgNbrxJSrZLnavYh-DSUMgaswlyj2arZdfHuZdmK4OBwesYHdHUaqnQCOQwwTH6X7k5GLDopyxKNO7PILz0ZoLvShprysXk1pnmSA6rUexFGLzLLMgj96R2dFaZun1As7PFk062SjzaEuQoUBOG03uO5mksWQnBY-a3btag9IY3y4HBJYjonQtQkfYwk76mDFW2cQ34fLqfxc3LrbIBFQ',
-  },
-]
+const PLACEHOLDER =
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuBiilh-Tazwkh6k9coXcjo1wpUqJCB47BjrSDa_py9foAo_80cEn5aap3Os7v0wTOMcg9267UFViieJRXaHga0Aq-P9LttYp2CZWuzjq7BY24pDh3RxB22-ZzAEvtAnBwXwEARyrRcvtLZx9LS7W2lU09pQr90rdVZoK6vpLn5p7pBn_tFa2sedOz5ONpjXCkbEy5t4IrqpCqgjUV-ELa5bQPCafGkV-nIdjfgV14_ZDmTSqRYCfgfjuzWo5NnAu9pjd-efCzWu6pCn'
 
 export function HomePage() {
   const { addToCart } = useCart()
+  const { variants, isLoading } = useProducts()
+
+  // Show up to 4 active variants as trending items
+  const trendingItems = variants.filter((v) => v.variant.status === 'Active').slice(0, 4)
 
   return (
     <>
@@ -142,39 +112,51 @@ export function HomePage() {
         <div className="container">
           <h2>Trending Now</h2>
           <div className="trending-row">
-            {trendingItems.map((item) => (
-              <a key={item.name} className="product-card" href="/product">
-                <div className="product-image-wrap">
-                  <img src={item.image} alt={item.name} />
-                  <button
-                    className="product-cart-btn"
-                    onClick={(event) => {
-                      event.preventDefault()
-                      event.stopPropagation()
-                      addToCart({
-                        id: item.id,
-                        name: item.name,
-                        price: item.amount,
-                        image: item.image,
-                      })
-                    }}
-                    type="button"
-                  >
-                    <Icon name="add_shopping_cart" className="icon-sm" />
-                  </button>
-                </div>
-                <div className="product-meta">
-                  <div>
-                    <h4>{item.name}</h4>
-                    <div className="rating-line">
-                      <Icon name="star" className="icon-xs" />
-                      <small>{item.rating}</small>
-                    </div>
+            {isLoading
+              ? Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="product-card">
+                  <div className="skeleton-card" style={{ height: '240px', borderRadius: '12px' }} />
+                  <div className="product-meta" style={{ padding: '0.75rem 0' }}>
+                    <div className="skeleton-line skeleton-line-lg" />
                   </div>
-                  <strong>{item.price}</strong>
                 </div>
-              </a>
-            ))}
+              ))
+              : trendingItems.map((variant) => {
+                const imgSrc = getImageUrl(variant.media.images[0]) ?? PLACEHOLDER
+                const price = +(variant.pricing.selling_price ?? 0)
+                return (
+                  <a key={variant.id} className="product-card" href={`/product?vid=${variant.id}`}>
+                    <div className="product-image-wrap">
+                      <img src={imgSrc} alt={variant.variant.name ?? ''} />
+                      <button
+                        className="product-cart-btn"
+                        onClick={(event) => {
+                          event.preventDefault()
+                          event.stopPropagation()
+                          addToCart({
+                            id: `variant-${variant.id}`,
+                            name: `${variant.product.name} – ${variant.variant.name}`,
+                            price,
+                            image: imgSrc,
+                          })
+                        }}
+                        type="button"
+                      >
+                        <Icon name="add_shopping_cart" className="icon-sm" />
+                      </button>
+                    </div>
+                    <div className="product-meta">
+                      <div>
+                        <h4>{variant.variant.name}</h4>
+                        <div className="rating-line">
+                          <small>{variant.product.name}</small>
+                        </div>
+                      </div>
+                      <strong>Rs {price.toLocaleString('en-IN')}</strong>
+                    </div>
+                  </a>
+                )
+              })}
           </div>
         </div>
       </section>

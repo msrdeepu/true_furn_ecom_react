@@ -6,18 +6,52 @@ import {
 import { authApi, type ApiUser } from '../api'
 import { AuthContext } from './AuthHook'
 
+const AUTH_STORAGE_KEY = 'truefurn_auth_user'
+
+function readStoredUser(): ApiUser | null {
+  if (typeof window === 'undefined') return null
+
+  const raw = window.localStorage.getItem(AUTH_STORAGE_KEY)
+  if (!raw) return null
+
+  try {
+    return JSON.parse(raw) as ApiUser
+  } catch {
+    window.localStorage.removeItem(AUTH_STORAGE_KEY)
+    return null
+  }
+}
+
 export function AuthProvider({ children }: PropsWithChildren) {
-  const [user, setUser] = useState<ApiUser | null>(null)
+  const [user, setUser] = useState<ApiUser | null>(() => readStoredUser())
   const [isLoading, setIsLoading] = useState(true)
 
-  // On mount, check if there's an active session
+  useEffect(() => {
+    if (!user) return
+    window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user))
+  }, [user])
+
+  useEffect(() => {
+    if (user) return
+    window.localStorage.removeItem(AUTH_STORAGE_KEY)
+  }, [user])
+
+  // On mount, try to refresh from the backend session. If that check fails,
+  // keep the locally cached user so refreshes don't blank the UI.
   useEffect(() => {
     let isMounted = true
+    const storedUser = readStoredUser()
+
     authApi.me().then((u) => {
-      if (isMounted) {
+      if (!isMounted) return
+
+      if (u) {
         setUser(u)
-        setIsLoading(false)
+      } else if (!storedUser) {
+        setUser(null)
       }
+
+      setIsLoading(false)
     }).catch(() => {
       if (isMounted) setIsLoading(false)
     })
@@ -56,8 +90,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
   }
 
+  const updateUser = (newUser: ApiUser) => {
+    setUser(newUser)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, googleLogin }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, googleLogin, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

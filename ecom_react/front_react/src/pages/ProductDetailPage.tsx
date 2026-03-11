@@ -1,57 +1,86 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useMemo, useEffect } from 'react'
 import { Icon } from '../components/ui/Icon'
 import { useCart } from '../context/CartContext'
+import { useProducts } from '../hooks/useProducts'
+import { getImageUrl } from '../api'
 
-const relatedProducts = [
-  {
-    name: 'Oak Side Table',
-    sub: 'Nordic Collection',
-    price: 'Rs 14,999',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCSIlXIXfqf9dgwPOJtnOnQo6mcu65MwE8WOiyvFiMSsuLVk-RfRQfOaXYm4D6C5Z_tMhMutX0rahdRvJqCsQkYBnIic31m7-_EEH1QUC6bohcbs_i51MaVMDx_D3jfzcsEMgZxw2CORFVK9yNCA_H8b5NMv9MqRi7oZfdIy5XtXyzgDtX9_A2sqDVPTn3rxX8Pncywxt2gUMNYxyld0y6rpuNQGd59xnilAnl6lKHAG2ms901t0eopamZk6kCT9G5YkMasUvBn-SZl',
-  },
-  {
-    name: 'Arc Floor Lamp',
-    sub: 'Modern Lighting',
-    price: 'Rs 17,499',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAnyQer2ieNId7MqjKMhgsLV5gNNWHdvlVt2cl2kHAHchtCLOUO1KfsamN3sK9UaIaQhVQquIDnOP6BDdiDA7L7nnaDOc24qaobLolvPDCe08iJfr1ODLDAkMX4-ZIC5l4djApVY7JQP4OzEO01laM_hR_Wy1Q0SXft6o0muokFCOwUmddWmpxF7wTDrISTWrLtcPpQ9y7U-soTemAYUAvhQOrWl2kZxYoq8O-KwbmU5l8k1wOqdlDckS3ABwzlnffhr_ewejgNygdl',
-  },
-  {
-    name: 'Velvet 3-Seater',
-    sub: 'Luxe Series',
-    price: 'Rs 98,999',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAAVkT360PGFttzAE2aT3usnBm_dBYbfrzT2IdQf17DT0ltaYit0dlYb7IDXPFJRsW9YYQd3DTI7K6Kf6Ug9qQgjM-atC0MU13idZFyLJKuXFJBbo-Ml8PPCXnYm-AZvs1xSDnnarbtzX8jC0zkpAkeVUPfpTiRLkEFvoNR1PJB_6RL15Q-imiGcOaZ0P7qmZucqMho1NIngkonx_xKGJ9ci4zQ6dU7vvRQm1K_OGtISpCELz0V9bYxkso_L_yLTtoZa5akKEC9Lkvf',
-  },
-  {
-    name: 'Boho Wool Rug',
-    sub: 'Textiles',
-    price: 'Rs 27,999',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDIlbUGkhkYbXlDKF0jCrl3q2GR8urTLq-8kf-_sc_5JeuvYq3Ev44GTENpE71j8tfiQp2R7MSkUHeHUyCtssDL3KpLeImlyaDu71fNm48qZ0e2jgpbLMXCl0orPp4VENRRXtdx_8hr5JKCtUAhe8R_ehmCAaHeCc6qJsPUxi7HJDjEQ-SaJvLSBX4YNJgQMdOqf70NMae_BFVjJP-FOy02gtDMvxWuiS389IrrGZrG7YKbBzh6oWazRCXhdxt_dnyd0GeH9INk16DX',
-  },
-]
+const PLACEHOLDER =
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuBiilh-Tazwkh6k9coXcjo1wpUqJCB47BjrSDa_py9foAo_80cEn5aap3Os7v0wTOMcg9267UFViieJRXaHga0Aq-P9LttYp2CZWuzjq7BY24pDh3RxB22-ZzAEvtAnBwXwEARyrRcvtLZx9LS7W2lU09pQr90rdVZoK6vpLn5p7pBn_tFa2sedOz5ONpjXCkbEy5t4IrqpCqgjUV-ELa5bQPCafGkV-nIdjfgV14_ZDmTSqRYCfgfjuzWo5NnAu9pjd-efCzWu6pCn'
 
-const thumbs = [
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuBiilh-Tazwkh6k9coXcjo1wpUqJCB47BjrSDa_py9foAo_80cEn5aap3Os7v0wTOMcg9267UFViieJRXaHga0Aq-P9LttYp2CZWuzjq7BY24pDh3RxB22-ZzAEvtAnBwXwEARyrRcvtLZx9LS7W2lU09pQr90rdVZoK6vpLn5p7pBn_tFa2sedOz5ONpjXCkbEy5t4IrqpCqgjUV-ELa5bQPCafGkV-nIdjfgV14_ZDmTSqRYCfgfjuzWo5NnAu9pjd-efCzWu6pCn',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuAAVkT360PGFttzAE2aT3usnBm_dBYbfrzT2IdQf17DT0ltaYit0dlYb7IDXPFJRsW9YYQd3DTI7K6Kf6Ug9qQgjM-atC0MU13idZFyLJKuXFJBbo-Ml8PPCXnYm-AZvs1xSDnnarbtzX8jC0zkpAkeVUPfpTiRLkEFvoNR1PJB_6RL15Q-imiGcOaZ0P7qmZucqMho1NIngkonx_xKGJ9ci4zQ6dU7vvRQm1K_OGtISpCELz0V9bYxkso_L_yLTtoZa5akKEC9Lkvf',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuAaPclcPUEE_iWnGrnJsEHI69E9rbZJMvf01BAPzrdiBsOBIBzMsQKqdzAqWuexgLX1SECDwcLJUQ4wLx-V4920sxccgW1ptNciqnaM16vIMnB0MuzhhFJ4GtYoI1mkkjWrZrblrSmYnXul2aAeCaqqiq3Hd47hlUAE2kQ3-TAp68uzbInphGLM_x0Ik1f4DV9eaQcJujF8io1TKe0TmEd5MeH-ZIpyJXJ_Dx3sLBd8IkCb_OIJJY4LKskBFoyWeyM7iGNOW1YrkltV',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuAMLZy1doiS-FhB6JOjdlAKrKoRzfRkBr7LJD_yWrRJPlpDLZEOmUA-Dc3Cc6rseksbqs7VbslO_XCbyOUiWLJXQRuPXfNwkqOmiNynzTynk43_yexS1gnL_wbBOxOdTJqsMVQV2DfHjEt6uMFJgwkNUzulp16SfPV2yezMmlvVtUpCgOgbnmu6gB0JoqklIZnQ7m2EyqimJAbjyHkTzEzEuj0C8hjXIUbyGi28CRcKexWDFv_Vkf6phMMP5yT6tYBCqwahmGxiVy1W',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuDhslV3MriTEtC8QTFn6QSBhEKsOlcVTI96-pcaaq7z3_WAu0OSQjjvpiacvZWcq8d9FKIpOJ5Kyf3DSy6Obh9pncvosUZfX7kzzfaW6lmm1I-tYEaiLH3-fHCtsJCC_sBzMzeYJ0JuUNBoJHSXAmFX6K8GpVvdaPaDr0oZ0WkrzZXmX4zrPMhZXJuCbPK7wg6-etLq4jGW-bmWQxmP-XrjzPtkg4JkaQrRB18U0CawPnsD1jmKnpHI8-kUI05dlb3Zhx_Gl0yMFcc8',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuDcMTn0bRrWmRa2sCUFLtiWRqm-YHTJYlKakrAgfmhDdIhbqGzKFDaJnvVyn0FVDi5BAEFRzZASI3icY5snmlTnMRiMO4ZqzPPZk6U17zUrfqypyQzfztEv8EH1csgr2ccQ0XfKbEGmel7Bd9lW7x2PTzc4LC1A9KxHuiQoQwUNrHK-WuGfAMhz3xBeO9VnoFUNHEZgR2YNMNOdcfLjrqZvpBc5Wl49t38lwXI8UfDoGOrq0JoqAgXf3gVKt-gwLYBVQB4JmFfsY3pl',
-]
+function formatPrice(n: number) {
+  return `Rs ${n.toLocaleString('en-IN')}`
+}
 
 export function ProductDetailPage() {
   const { addToCart } = useCart()
+  const { variants, products, isLoading } = useProducts()
   const thumbsRef = useRef<HTMLDivElement>(null)
+  const [activeThumb, setActiveThumb] = useState(0)
+  const [activeTab, setActiveTab] = useState<string>('')
   const [zoomStyle, setZoomStyle] = useState({ x: '50%', y: '50%' })
+
+  // Read variant id from URL ?vid=
+  const vidParam = new URLSearchParams(window.location.search).get('vid')
+  const variantId = vidParam ? parseInt(vidParam, 10) : null
+
+  const variant = useMemo(
+    () => (variantId != null ? variants.find((v) => v.id === variantId) : variants[0]),
+    [variants, variantId]
+  )
+
+  // Auto-set the first available tab when variant changes
+  useEffect(() => {
+    if (variant?.content) {
+      const tabs = [
+        { id: 'description', val: variant.content.description_html },
+        { id: 'specification', val: variant.content.specification_html },
+        { id: 'brand', val: variant.content.brand_collection_overview_html },
+        { id: 'seller', val: variant.content.seller_notes_html },
+        { id: 'warranty', val: variant.content.warranty_html },
+      ]
+      const first = tabs.find((t) => !!t.val)
+      if (first) setActiveTab(first.id)
+    }
+  }, [variant])
+
+  const product = useMemo(
+    () => (variant?.product ? products.find((p) => p.id === variant.product?.id) : null),
+    [products, variant]
+  )
+
+  // Reset active image when variant changes
+  useEffect(() => {
+    setActiveThumb(0)
+  }, [variant?.id])
+
+  // Siblings: other variants belonging to the same product
+  const siblings = useMemo(
+    () =>
+      variant?.product?.id
+        ? variants.filter((v) => v.product?.id === variant.product.id && v.id !== variant.id)
+        : [],
+    [variants, variant]
+  )
+
+  // Related: variants from other products (up to 4)
+  const related = useMemo(
+    () =>
+      variant?.product?.id
+        ? variants.filter((v) => v.product?.id !== variant.product.id).slice(0, 4)
+        : variants.slice(0, 4),
+    [variants, variant]
+  )
+
+  const thumbs = useMemo(() => {
+    if (!variant) return [PLACEHOLDER]
+    const imgs = (variant.media?.images || []).map((img) => getImageUrl(img) ?? PLACEHOLDER)
+    return imgs.length > 0 ? imgs : [PLACEHOLDER]
+  }, [variant])
 
   const scrollThumbs = (direction: 'left' | 'right') => {
     const el = thumbsRef.current
     if (!el) return
-    const offset = direction === 'left' ? -320 : 320
-    el.scrollBy({ left: offset, behavior: 'smooth' })
+    el.scrollBy({ left: direction === 'left' ? -320 : 320, behavior: 'smooth' })
   }
 
   const onImageMove = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -61,107 +90,184 @@ export function ProductDetailPage() {
     setZoomStyle({ x: `${x}%`, y: `${y}%` })
   }
 
+  if (isLoading) {
+    return (
+      <section className="product-page">
+        <div className="container">
+          <div className="product-top">
+            <div className="skeleton-card" style={{ height: '420px', flex: 1, borderRadius: '16px' }} />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="skeleton-line skeleton-line-sm" style={{ width: '40%' }} />
+              <div className="skeleton-line skeleton-line-lg" style={{ width: '80%' }} />
+              <div className="skeleton-line skeleton-line-sm" style={{ width: '30%' }} />
+              <div className="skeleton-line skeleton-line-lg" />
+              <div className="skeleton-line skeleton-line-lg" />
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (!variant) {
+    return (
+      <section className="product-page">
+        <div className="container" style={{ padding: '4rem 0', textAlign: 'center', opacity: 0.5 }}>
+          <Icon name="image" className="icon-lg" />
+          <p style={{ marginTop: '1rem' }}>Product not found.</p>
+          <a className="btn-primary" href="/shop" style={{ display: 'inline-block', marginTop: '1.5rem' }}>
+            Back to Shop
+          </a>
+        </div>
+      </section>
+    )
+  }
+
+  const price = +(variant.pricing?.selling_price || variant.pricing?.mrp || 0)
+  const mrp = +(variant.pricing?.mrp || 0)
+  const hasDiscount = mrp > price
+  const discountPct = hasDiscount ? Math.round(((mrp - price) / mrp) * 100) : 0
+  const variantDisplayName = variant.variant?.name || variant.product?.name || 'Unnamed Product'
+
   return (
     <section className="product-page">
       <div className="container">
         <div className="product-top">
+          {/* Gallery */}
           <div className="product-gallery">
             <div
               className="product-main-image"
               onMouseMove={onImageMove}
-              style={
-                {
-                  '--zoom-x': zoomStyle.x,
-                  '--zoom-y': zoomStyle.y,
-                } as React.CSSProperties
-              }
+              style={{ '--zoom-x': zoomStyle.x, '--zoom-y': zoomStyle.y } as React.CSSProperties}
             >
-              <img src={thumbs[0]} alt="Velvet Accent Chair" />
+              <img src={thumbs[activeThumb]} alt={variantDisplayName} />
             </div>
-            <div className="product-thumbs-wrap">
-              <button
-                aria-label="Scroll left"
-                className="thumb-scroll-btn"
-                onClick={() => scrollThumbs('left')}
-                type="button"
-              >
-                {'<'}
-              </button>
-              <div className="product-thumbs" ref={thumbsRef}>
-                {thumbs.map((thumb, index) => (
-                  <button
-                    className={`product-thumb ${index === 0 ? 'active' : ''}`}
-                    key={`${thumb}-${index}`}
-                    type="button"
-                  >
-                    <img src={thumb} alt="Product view" />
-                  </button>
-                ))}
+            {thumbs.length > 1 && (
+              <div className="product-thumbs-wrap">
+                <button
+                  aria-label="Scroll left"
+                  className="thumb-scroll-btn"
+                  onClick={() => scrollThumbs('left')}
+                  type="button"
+                >
+                  {'<'}
+                </button>
+                <div className="product-thumbs" ref={thumbsRef}>
+                  {thumbs.map((thumb, index) => (
+                    <button
+                      className={`product-thumb ${index === activeThumb ? 'active' : ''}`}
+                      key={`${thumb}-${index}`}
+                      onClick={() => setActiveThumb(index)}
+                      type="button"
+                    >
+                      <img src={thumb} alt={`View ${index + 1}`} />
+                    </button>
+                  ))}
+                </div>
+                <button
+                  aria-label="Scroll right"
+                  className="thumb-scroll-btn"
+                  onClick={() => scrollThumbs('right')}
+                  type="button"
+                >
+                  {'>'}
+                </button>
               </div>
-              <button
-                aria-label="Scroll right"
-                className="thumb-scroll-btn"
-                onClick={() => scrollThumbs('right')}
-                type="button"
-              >
-                {'>'}
-              </button>
-            </div>
+            )}
           </div>
 
+          {/* Info */}
           <div className="product-info">
             <div className="product-bread">
-              <a href="/">Living Room</a>
+              <a href="/">Home</a>
               <span>/</span>
-              <a href="/shop">Chairs</a>
-              <span>/</span>
-              <strong>Accent Chairs</strong>
-            </div>
-            <h1>Velvet Accent Chair</h1>
-            <div className="product-rating-line">
-              <div className="stars">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Icon key={i} name="star" className="icon-xs" />
-                ))}
-              </div>
-              <span>4.8</span>
-              <small>|</small>
-              <small>120 verified reviews</small>
-            </div>
-            <div className="product-price">Rs 36,999</div>
-
-            <div className="product-option-title">Choose Color</div>
-            <div className="product-color-row">
-              <button className="color-pill color-green active" type="button"></button>
-              <button className="color-pill color-blue" type="button"></button>
-              <button className="color-pill color-brown" type="button"></button>
+              <a href="/shop">Shop</a>
+              {product?.room_type && (
+                <>
+                  <span>/</span>
+                  <span>{product.room_type}</span>
+                </>
+              )}
             </div>
 
-            <div className="product-option-title">Product Description</div>
-            <p className="product-desc">
-              Experience unparalleled comfort with our signature Velvet Accent
-              Chair. Meticulously upholstered in premium, high-density velvet
-              that feels as luxurious as it looks.
-            </p>
+            <h1>{variantDisplayName}</h1>
+            <p style={{ opacity: 0.6, marginBottom: '0.5rem' }}>{variant.product?.name}</p>
 
-            <div className="product-option-title">Key Features</div>
+            <div className="product-price">
+              {formatPrice(price)}
+              {hasDiscount && (
+                <>
+                  {' '}
+                  <small style={{ textDecoration: 'line-through', opacity: 0.5, fontSize: '0.9em' }}>
+                    {formatPrice(mrp)}
+                  </small>
+                  {' '}
+                  <span
+                    style={{
+                      background: 'var(--clr-accent, #2e7d32)',
+                      color: '#fff',
+                      fontSize: '0.75rem',
+                      borderRadius: '4px',
+                      padding: '2px 6px',
+                    }}
+                  >
+                    {discountPct}% OFF
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Specs (Brief) */}
+            <div className="product-option-title">Specifications</div>
             <ul className="product-features">
-              <li>Solid wood reinforced legs</li>
-              <li>Premium stain-resistant velvet</li>
-              <li>Ergonomic lumbar support</li>
-              <li>High-resilience foam cushion</li>
+              {variant.attributes?.material && <li>Material: {variant.attributes.material}</li>}
+              {variant.attributes?.finish && <li>Finish: {variant.attributes.finish}</li>}
+              {variant.attributes?.color && <li>Color: {variant.attributes.color}</li>}
+              {variant.dimensions?.weight && <li>Weight: {variant.dimensions.weight}</li>}
+              {(variant.dimensions?.length_mm || variant.dimensions?.width_mm || variant.dimensions?.breadth_mm || variant.dimensions?.height_mm) && (
+                <li>
+                  Dimensions: {[
+                    variant.dimensions.length_mm,
+                    variant.dimensions.width_mm || variant.dimensions.breadth_mm,
+                    variant.dimensions.height_mm
+                  ].filter(Boolean).join(' × ')} mm
+                </li>
+              )}
+              {variant.fulfillment?.warranty_months && (
+                <li>Warranty: {variant.fulfillment.warranty_months} months</li>
+              )}
+              {variant.fulfillment?.assembly_required && <li>Assembly required</li>}
             </ul>
+
+            {/* Other variants of same product */}
+            {siblings.length > 0 && (
+              <>
+                <div className="product-option-title">Other Variants</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                  {siblings.map((sib) => (
+                    <a
+                      className="btn-ghost"
+                      href={`/product?vid=${sib.id}`}
+                      key={sib.id}
+                      style={{ fontSize: '0.8rem', padding: '0.3rem 0.75rem' }}
+                    >
+                      {sib.variant?.name || sib.product?.name || 'Unnamed Variant'}
+                    </a>
+                  ))}
+                </div>
+              </>
+            )}
 
             <div className="product-cta-row">
               <button
                 className="btn-primary"
                 onClick={() =>
                   addToCart({
-                    id: 'velvet-accent-chair',
-                    name: 'Velvet Accent Chair',
-                    price: 36999,
+                    id: `variant-${variant.id}`,
+                    name: `${variant.product?.name || 'Product'} – ${variantDisplayName}`,
+                    price,
                     image: thumbs[0],
-                    meta: 'Color: Emerald Green | SKU: TF-9920',
+                    meta: variant.variant?.sku ? `SKU: ${variant.variant.sku}` : undefined,
                   })
                 }
                 type="button"
@@ -173,11 +279,11 @@ export function ProductDetailPage() {
                 href="/cart"
                 onClick={() =>
                   addToCart({
-                    id: 'velvet-accent-chair',
-                    name: 'Velvet Accent Chair',
-                    price: 36999,
+                    id: `variant-${variant.id}`,
+                    name: `${variant.product?.name || 'Product'} – ${variantDisplayName}`,
+                    price,
                     image: thumbs[0],
-                    meta: 'Color: Emerald Green | SKU: TF-9920',
+                    meta: variant.variant?.sku ? `SKU: ${variant.variant.sku}` : undefined,
                   })
                 }
               >
@@ -187,53 +293,145 @@ export function ProductDetailPage() {
 
             <div className="product-policy-row">
               <span>Free Shipping</span>
-              <span>2 Year Warranty</span>
+              <span>{variant.fulfillment?.warranty_months ? `${variant.fulfillment.warranty_months} Mo. Warranty` : '2 Year Warranty'}</span>
               <span>30 Day Returns</span>
             </div>
           </div>
         </div>
 
-        <div className="review-strip">
-          <div className="review-score">
-            <h2>4.8</h2>
-            <div className="stars">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Icon key={i} name="star" className="icon-xs" />
-              ))}
+        {/* Tabbed Content */}
+        {variant.content && (
+          <div className="product-details-tabs">
+            <div className="tabs-nav">
+              <button
+                className={`tab-btn ${activeTab === 'description' ? 'active' : ''}`}
+                onClick={() => setActiveTab('description')}
+              >
+                Description
+              </button>
+              <button
+                className={`tab-btn ${activeTab === 'specification' ? 'active' : ''}`}
+                onClick={() => setActiveTab('specification')}
+              >
+                Specifications
+              </button>
+              <button
+                className={`tab-btn ${activeTab === 'brand' ? 'active' : ''}`}
+                onClick={() => setActiveTab('brand')}
+              >
+                Brand & Collection
+              </button>
+              <button
+                className={`tab-btn ${activeTab === 'seller' ? 'active' : ''}`}
+                onClick={() => setActiveTab('seller')}
+              >
+                Seller Info
+              </button>
+              <button
+                className={`tab-btn ${activeTab === 'warranty' ? 'active' : ''}`}
+                onClick={() => setActiveTab('warranty')}
+              >
+                Warranty
+              </button>
             </div>
-            <p>Based on 120 reviews</p>
-          </div>
-          <div className="review-bars">
-            {[80, 10, 5, 3, 2].map((pct, idx) => (
-              <div className="review-bar-row" key={idx}>
-                <span>{5 - idx}</span>
-                <div className="review-track">
-                  <div className="review-fill" style={{ width: `${pct}%` }} />
+            <div className="tab-pane">
+              {activeTab === 'description' && (
+                <div className="rich-text-content">
+                  {variant.content.description_html ? (
+                    <div dangerouslySetInnerHTML={{ __html: variant.content.description_html }} />
+                  ) : (
+                    <p style={{ opacity: 0.5 }}>Product description is not available.</p>
+                  )}
                 </div>
-                <small>{pct}%</small>
-              </div>
-            ))}
+              )}
+              {activeTab === 'specification' && (
+                <div className="rich-text-content">
+                  {variant.content.specification_html ? (
+                    <div dangerouslySetInnerHTML={{ __html: variant.content.specification_html }} />
+                  ) : (
+                    <p style={{ opacity: 0.5 }}>Technical specifications are not available for this item.</p>
+                  )}
+                </div>
+              )}
+              {activeTab === 'brand' && (
+                <div className="rich-text-content">
+                  {variant.content.brand_collection_overview_html ? (
+                    <div dangerouslySetInnerHTML={{ __html: variant.content.brand_collection_overview_html }} />
+                  ) : (
+                    <p style={{ opacity: 0.5 }}>Brand and collection details are currently under review.</p>
+                  )}
+                </div>
+              )}
+              {activeTab === 'seller' && (
+                <div className="rich-text-content">
+                  {variant.content.seller_notes_html ? (
+                    <div dangerouslySetInnerHTML={{ __html: variant.content.seller_notes_html }} />
+                  ) : (
+                    <p style={{ opacity: 0.5 }}>Seller information is not provided for this variant.</p>
+                  )}
+                </div>
+              )}
+              {activeTab === 'warranty' && (
+                <div className="rich-text-content">
+                  {variant.content.warranty_html ? (
+                    <div dangerouslySetInnerHTML={{ __html: variant.content.warranty_html }} />
+                  ) : (
+                    <p style={{ opacity: 0.5 }}>Detailed warranty policy information is not available.</p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="related-section">
-          <div className="related-head">
-            <h3>You May Also Like</h3>
-            <a href="/shop">View All</a>
+
+        {/* Related Products */}
+        {related.length > 0 && (
+          <div className="related-section">
+            <div className="related-head">
+              <h3>You May Also Like</h3>
+              <a href="/shop">View All</a>
+            </div>
+            <div className="related-grid">
+              {related.map((item) => {
+                const img = getImageUrl(item.media?.images?.[0]) ?? PLACEHOLDER
+                const itemPrice = +(item.pricing?.selling_price || item.pricing?.mrp || 0)
+                const itemDisplayName = item.variant?.name || item.product?.name || 'Unnamed Product'
+                return (
+                  <div className="related-card" key={item.id}>
+                    <a href={`/product?vid=${item.id}`}>
+                      <div className="related-img">
+                        <img src={img} alt={itemDisplayName} />
+                      </div>
+                    </a>
+                    <h4>{itemDisplayName}</h4>
+                    <small>{item.product?.name}</small>
+                    <strong>{formatPrice(itemPrice)}</strong>
+                    <div className="shop-card-actions" style={{ marginTop: '0.75rem' }}>
+                      <button
+                        className="shop-btn-add"
+                        onClick={() =>
+                          addToCart({
+                            id: `variant-${item.id}`,
+                            name: `${item.product?.name || 'Product'} – ${itemDisplayName}`,
+                            price: itemPrice,
+                            image: img,
+                          })
+                        }
+                        type="button"
+                      >
+                        Add to Cart
+                      </button>
+                      <a className="shop-btn-view" href={`/product?vid=${item.id}`}>
+                        View Details
+                      </a>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
-          <div className="related-grid">
-            {relatedProducts.map((item) => (
-              <a className="related-card" href="/product" key={item.name}>
-                <div className="related-img">
-                  <img src={item.image} alt={item.name} />
-                </div>
-                <h4>{item.name}</h4>
-                <small>{item.sub}</small>
-                <strong>{item.price}</strong>
-              </a>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
     </section>
   )

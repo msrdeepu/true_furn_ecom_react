@@ -129,8 +129,8 @@ export function SignupPage() {
             <label className="checkbox-row checkbox-row-top">
               <input type="checkbox" required />
               <span>
-                I agree to the <a href="#">Terms of Service</a> and{' '}
-                <a href="#">Privacy Policy</a>
+                I agree to the <a href="/terms-condition">Terms of Service</a> and{' '}
+                <a href="/privacy-policy">Privacy Policy</a>
               </span>
             </label>
 
@@ -147,12 +147,22 @@ export function SignupPage() {
         </div>
       </main>
 
-      <footer className="auth-tagline">
-        <span>Modern</span>
-        <i></i>
-        <span>Premium</span>
-        <i></i>
-        <span>Minimalist</span>
+      <footer className="auth-footer">
+        <p>
+          Copyright 2026 TRUE FURN. All rights reserved.
+          <span>|</span>
+          <a href="/terms-condition">Terms & Conditions</a>
+          <span>|</span>
+          <a href="/privacy-policy">Privacy Policy</a>
+          <span>|</span>
+          <a href="/disclaimer">Disclaimer</a>
+          <span>|</span>
+          <a href="/shipping-policy">Shipping Policy</a>
+          <span>|</span>
+          <a href="/refund-policy">Refund Policy</a>
+          <span>|</span>
+          <a href="#">Contact Us</a>
+        </p>
       </footer>
     </div>
   )

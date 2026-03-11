@@ -11,6 +11,10 @@ export function LoginPage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
+  // Parse redirect URL
+  const query = new URLSearchParams(window.location.search)
+  const redirectPath = query.get('redirect') || '/account/dashboard'
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !password) return
@@ -18,7 +22,7 @@ export function LoginPage() {
     setIsLoading(true)
     try {
       await login(email, password)
-      window.history.pushState({}, '', '/account/dashboard')
+      window.history.pushState({}, '', redirectPath)
       window.dispatchEvent(new PopStateEvent('popstate'))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.')
@@ -49,7 +53,7 @@ export function LoginPage() {
           </div>
 
           <div className="auth-socials">
-            <GoogleLoginButton />
+            <GoogleLoginButton redirect={redirectPath} />
           </div>
 
           <div className="auth-divider">
@@ -108,9 +112,17 @@ export function LoginPage() {
         <p>
           Copyright 2026 TRUE FURN. All rights reserved.
           <span>|</span>
-          <a href="#">Privacy Policy</a>
+          <a href="/terms-condition">Terms & Conditions</a>
           <span>|</span>
-          <a href="#">Terms of Service</a>
+          <a href="/privacy-policy">Privacy Policy</a>
+          <span>|</span>
+          <a href="/disclaimer">Disclaimer</a>
+          <span>|</span>
+          <a href="/shipping-policy">Shipping Policy</a>
+          <span>|</span>
+          <a href="/refund-policy">Refund Policy</a>
+          <span>|</span>
+          <a href="#">Contact Us</a>
         </p>
       </footer>
     </div>

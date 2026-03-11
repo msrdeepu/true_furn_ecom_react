@@ -35,15 +35,24 @@ type IconName =
   | 'public'
   | 'share'
   | 'image'
+  | 'shopping_bag'
+  | 'local_shipping'
+  | 'history'
+  | 'account_circle'
+  | 'error_outline'
+  | 'info'
+  | 'location_on'
 
 type IconProps = {
   name: IconName
   className?: string
+  style?: React.CSSProperties
 }
 
-export function Icon({ name, className }: IconProps) {
+export function Icon({ name, className, style }: IconProps) {
   const commonProps = {
     className: `icon ${className ?? ''}`.trim(),
+    style,
     viewBox: '0 0 24 24',
     fill: 'none',
     stroke: 'currentColor',
@@ -95,6 +104,7 @@ export function Icon({ name, className }: IconProps) {
         </svg>
       )
     case 'location':
+    case 'location_on':
       return (
         <svg {...commonProps}>
           <path d="M12 21s7-5.8 7-11a7 7 0 1 0-14 0c0 5.2 7 11 7 11Z" />
@@ -329,6 +339,56 @@ export function Icon({ name, className }: IconProps) {
           <path d="M8 11V8a4 4 0 1 1 8 0v3" />
           <line x1="7" y1="15" x2="7" y2="20" />
           <line x1="17" y1="15" x2="17" y2="20" />
+        </svg>
+      )
+    case 'shopping_bag':
+      return (
+        <svg {...commonProps}>
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+          <path d="M3 6h18" />
+          <path d="M16 10a4 4 0 0 1-8 0" />
+        </svg>
+      )
+    case 'local_shipping':
+      return (
+        <svg {...commonProps}>
+          <path d="M10 17h4V5H2v12h3" />
+          <circle cx="7" cy="17" r="2" />
+          <path d="M17 17h2v-5h-4v5h2" />
+          <circle cx="17" cy="17" r="2" />
+          <path d="M14 8h5l3 3v6h-2" />
+        </svg>
+      )
+    case 'history':
+      return (
+        <svg {...commonProps}>
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+          <path d="M12 7v5l4 2" />
+        </svg>
+      )
+    case 'account_circle':
+      return (
+        <svg {...commonProps}>
+          <circle cx="12" cy="12" r="10" />
+          <path d="M11 8a3 3 0 1 1 2 0 3 3 0 0 1-2 0Z" />
+          <path d="M7 17a5 5 0 0 1 10 0" />
+        </svg>
+      )
+    case 'error_outline':
+      return (
+        <svg {...commonProps}>
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+      )
+    case 'info':
+      return (
+        <svg {...commonProps}>
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
         </svg>
       )
     default:

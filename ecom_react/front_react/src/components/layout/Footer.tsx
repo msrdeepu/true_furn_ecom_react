@@ -1,20 +1,20 @@
 import { Icon } from '../ui/Icon'
 
 const shopLinks = [
-  'All Products',
-  'Living Room',
-  'Bedroom',
-  'Office',
-  'New Arrivals',
+  { label: 'All Products', href: '/shop' },
+  { label: 'Living Room', href: '/shop' },
+  { label: 'Bedroom', href: '/shop' },
+  { label: 'Office', href: '/shop' },
+  { label: 'New Arrivals', href: '/shop' },
 ]
 
-const companyLinks = ['Our Story', 'Sustainability', 'Careers', 'Journal']
-
-const supportLinks = [
-  'Shipping & Returns',
-  'Track Order',
-  'Help Center',
-  'Contact Us',
+const supportLegalLinks = [
+  { label: 'Terms & Conditions', href: '/terms-condition' },
+  { label: 'Privacy Policy', href: '/privacy-policy' },
+  { label: 'Disclaimer', href: '/disclaimer' },
+  { label: 'Shipping Policy', href: '/shipping-policy' },
+  { label: 'Refund Policy', href: '/refund-policy' },
+  { label: 'Contact Us', href: '#' },
 ]
 
 export function Footer() {
@@ -48,9 +48,9 @@ export function Footer() {
             <h5>Shop</h5>
             <ul>
               {shopLinks.map((link) => (
-                <li key={link}>
-                  <a className="footer-link" href="#">
-                    {link}
+                <li key={link.label}>
+                  <a className="footer-link" href={link.href}>
+                    {link.label}
                   </a>
                 </li>
               ))}
@@ -58,25 +58,12 @@ export function Footer() {
           </div>
 
           <div className="footer-col">
-            <h5>Company</h5>
+            <h5>Support & Legal</h5>
             <ul>
-              {companyLinks.map((link) => (
-                <li key={link}>
-                  <a className="footer-link" href="#">
-                    {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="footer-col">
-            <h5>Support</h5>
-            <ul>
-              {supportLinks.map((link) => (
-                <li key={link}>
-                  <a className="footer-link" href="#">
-                    {link}
+              {supportLegalLinks.map((link) => (
+                <li key={link.label}>
+                  <a className="footer-link" href={link.href}>
+                    {link.label}
                   </a>
                 </li>
               ))}
@@ -87,10 +74,10 @@ export function Footer() {
         <div className="footer-bottom">
           <p>Copyright 2026 TRUE FURN Inc. All rights reserved.</p>
           <div className="footer-bottom-links">
-            <a href="#">
+            <a href="/privacy-policy">
               Privacy Policy
             </a>
-            <a href="#">
+            <a href="/terms-condition">
               Terms of Service
             </a>
             <a href="#">
@@ -102,3 +89,4 @@ export function Footer() {
     </footer>
   )
 }
+

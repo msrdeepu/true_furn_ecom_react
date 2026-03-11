@@ -2,7 +2,7 @@ import { GoogleLogin } from '@react-oauth/google'
 import { useAuth } from '../../context/AuthHook'
 import { useState } from 'react'
 
-export function GoogleLoginButton() {
+export function GoogleLoginButton({ redirect }: { redirect?: string }) {
     const { googleLogin } = useAuth()
     const [error, setError] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
@@ -14,7 +14,8 @@ export function GoogleLoginButton() {
         setError(null)
         try {
             await googleLogin(credentialResponse.credential)
-            window.history.pushState({}, '', '/account/dashboard')
+            const target = redirect || '/account/dashboard'
+            window.history.pushState({}, '', target)
             window.dispatchEvent(new PopStateEvent('popstate'))
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Google login failed')

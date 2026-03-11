@@ -8,7 +8,9 @@ export type AuthContextValue = {
     register: (name: string, email: string, password: string, passwordConfirmation: string) => Promise<void>
     googleLogin: (credential: string) => Promise<void>
     logout: () => Promise<void>
+    updateUser: (newUser: ApiUser) => void
 }
+
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
 

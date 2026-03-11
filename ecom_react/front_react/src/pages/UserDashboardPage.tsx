@@ -1,16 +1,55 @@
+import { useEffect, useState } from 'react'
 import { UserDashboardLayout } from '../components/layout/UserDashboardLayout'
 import { Icon } from '../components/ui/Icon'
 import { useAuth } from '../context/AuthHook'
-
-const recentOrders = [
-  { id: '#TF-99021', date: 'Oct 18, 2023', items: '1 Item', amount: 'Rs 34,999', status: 'Shipped' },
-  { id: '#TF-98845', date: 'Oct 12, 2023', items: '3 Items', amount: 'Rs 78,999', status: 'Delivered' },
-  { id: '#TF-98721', date: 'Sep 28, 2023', items: '2 Items', amount: 'Rs 52,499', status: 'Processing' },
-]
+import { orderApi } from '../api'
+import type { ApiOrder } from '../api'
+import { formatINR } from '../context/CartContext'
 
 export function UserDashboardPage() {
   const { user } = useAuth()
+  const [orders, setOrders] = useState<ApiOrder[]>([])
+  const [latestOrder, setLatestOrder] = useState<ApiOrder | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
   const displayName = user?.name || 'Customer'
+
+  useEffect(() => {
+    if (user) {
+      fetchData()
+    }
+  }, [user])
+
+  const fetchData = async () => {
+    setIsLoading(true)
+    try {
+      const [allOrders, latest] = await Promise.all([
+        orderApi.list(user!.id),
+        orderApi.latest(user!.id)
+      ])
+      setOrders(allOrders)
+      setLatestOrder(latest)
+    } catch (err) {
+      console.error('Failed to fetch dashboard data', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Get status steps for tracking line
+  const getStatusProgress = (status: string) => {
+    const steps = ['Confirmed', 'Processing', 'In-Progress', 'Shipped', 'Delivered']
+    const currentIndex = steps.findIndex(s => s.toLowerCase() === status.toLowerCase())
+    if (currentIndex === -1) return 20 // Default small progress
+    return ((currentIndex + 1) / steps.length) * 100
+  }
+
+  const isStepActive = (step: string, currentStatus: string) => {
+    const steps = ['Confirmed', 'Processing', 'In-Progress', 'Shipped', 'Delivered']
+    const stepIdx = steps.indexOf(step)
+    const currentIdx = steps.findIndex(s => s.toLowerCase() === currentStatus.toLowerCase())
+    return stepIdx <= currentIdx
+  }
 
   return (
     <UserDashboardLayout
@@ -23,39 +62,41 @@ export function UserDashboardPage() {
       <div className="dash-stats single-stat">
         <article>
           <h4>Total Orders</h4>
-          <strong>24</strong>
-          <p className="up">+3 from last month</p>
+          <strong>{orders.length}</strong>
+          <p className="up">Real-time status</p>
         </article>
       </div>
 
-      <section className="dash-panel">
-        <div className="dash-panel-head">
-          <h3>
-            <Icon className="icon-sm" name="truck" /> Current Shipment
-          </h3>
-          <small>Arriving Thursday, Oct 24</small>
-        </div>
-        <div className="shipment-row">
-          <img
-            alt="Velvet chair"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiilh-Tazwkh6k9coXcjo1wpUqJCB47BjrSDa_py9foAo_80cEn5aap3Os7v0wTOMcg9267UFViieJRXaHga0Aq-P9LttYp2CZWuzjq7BY24pDh3RxB22-ZzAEvtAnBwXwEARyrRcvtLZx9LS7W2lU09pQr90rdVZoK6vpLn5p7pBn_tFa2sedOz5ONpjXCkbEy5t4IrqpCqgjUV-ELa5bQPCafGkV-nIdjfgV14_ZDmTSqRYCfgfjuzWo5NnAu9pjd-efCzWu6pCn"
-          />
-          <div className="shipment-info">
-            <h4>Velvet Occasional Chair</h4>
-            <p>Order #TF-99021 • Standard Shipping</p>
-            <div className="shipment-track">
-              <div className="active-line" />
-            </div>
-            <div className="shipment-steps">
-              <span className="active">Confirmed</span>
-              <span className="active">Processing</span>
-              <span className="active">In Transit</span>
-              <span>Delivered</span>
-            </div>
+      {latestOrder && latestOrder.status.toLowerCase() !== 'delivered' && (
+        <section className="dash-panel">
+          <div className="dash-panel-head">
+            <h3>
+              <Icon className="icon-sm" name="truck" /> Current Shipment
+            </h3>
+            <small>Ordered {new Date(latestOrder.created_at).toLocaleDateString()}</small>
           </div>
-          <a href="#">Track Package</a>
-        </div>
-      </section>
+          <div className="shipment-row">
+            <img
+              alt={latestOrder.items?.[0]?.name || 'Product'}
+              src={latestOrder.items?.[0]?.image || 'https://via.placeholder.com/100'}
+            />
+            <div className="shipment-info">
+              <h4>{latestOrder.items?.[0]?.name || 'Recent Order'}</h4>
+              <p>Order #{latestOrder.paypal_orderid || latestOrder.id} • Standard Shipping</p>
+              <div className="shipment-track">
+                <div className="active-line" style={{ width: `${getStatusProgress(latestOrder.status)}%` }} />
+              </div>
+              <div className="shipment-steps">
+                <span className={isStepActive('Confirmed', latestOrder.status) ? 'active' : ''}>Confirmed</span>
+                <span className={isStepActive('Processing', latestOrder.status) ? 'active' : ''}>Processing</span>
+                <span className={isStepActive('In-Progress', latestOrder.status) || isStepActive('Shipped', latestOrder.status) ? 'active' : ''}>Transit</span>
+                <span className={isStepActive('Delivered', latestOrder.status) ? 'active' : ''}>Delivered</span>
+              </div>
+            </div>
+            <a href={`/account/orders/${latestOrder.id}`}>View Details</a>
+          </div>
+        </section>
+      )}
 
       <section className="dash-panel">
         <div className="dash-panel-head">
@@ -75,24 +116,30 @@ export function UserDashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {recentOrders.map((order) => (
-                <tr key={order.id}>
-                  <td>{order.id}</td>
-                  <td>{order.date}</td>
-                  <td>{order.items}</td>
-                  <td>{order.amount}</td>
-                  <td>
-                    <span className={`status-pill ${order.status.toLowerCase()}`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td>
-                    <button className="more-btn" type="button">
-                      <Icon className="icon-sm" name="more" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {isLoading ? (
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>Loading orders...</td></tr>
+              ) : orders.length === 0 ? (
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No orders found</td></tr>
+              ) : (
+                orders.slice(0, 5).map((order) => (
+                  <tr key={order.id}>
+                    <td>#{order.paypal_orderid || order.id}</td>
+                    <td>{new Date(order.created_at).toLocaleDateString()}</td>
+                    <td>{order.items?.length || 0} Items</td>
+                    <td>{formatINR(order.amount)}</td>
+                    <td>
+                      <span className={`status-pill ${order.status.toLowerCase().replace(/\s+/g, '-')}`}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td>
+                      <a className="more-btn" href={`/account/orders/${order.id}`}>
+                        <Icon className="icon-sm" name="visibility" />
+                      </a>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
