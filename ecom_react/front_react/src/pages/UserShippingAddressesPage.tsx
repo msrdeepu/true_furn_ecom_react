@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { UserDashboardLayout } from '../components/layout/UserDashboardLayout'
 import { Icon } from '../components/ui/Icon'
-import { addressApi, type ApiAddress } from '../api'
+import { addressApi, settingsApi, type ApiAddress, type ApiCountry, type ApiState, type ApiDistrict } from '../api'
 import { useAuth } from '../context/AuthHook'
 import { useToast } from '../context/ToastContext'
+import Select from 'react-select'
 
 export function UserShippingAddressesPage() {
   const { user } = useAuth()
@@ -19,11 +20,20 @@ export function UserShippingAddressesPage() {
     a_type: 'Home',
     address: '',
     extra_address: '',
+    country_id: null,
+    state_id: null,
+    district_id: null,
     city: '',
     zipcode: '',
     location: '',
     contact_number: '+91 ',
   })
+
+  // Dropdown Data
+  const [countries, setCountries] = useState<ApiCountry[]>([])
+  const [states, setStates] = useState<ApiState[]>([])
+  const [districts, setDistricts] = useState<ApiDistrict[]>([])
+  const [isLoadingSettings, setIsLoadingSettings] = useState(false)
 
   const fetchAddresses = async () => {
     if (!user) return
@@ -40,7 +50,41 @@ export function UserShippingAddressesPage() {
 
   useEffect(() => {
     fetchAddresses()
+    fetchCountries()
   }, [user?.id])
+
+  const fetchCountries = async () => {
+    try {
+      const data = await settingsApi.getCountries()
+      setCountries(data)
+    } catch (err) {
+      console.error('Failed to load countries', err)
+    }
+  }
+
+  const fetchStates = async (countryId: number) => {
+    try {
+      setIsLoadingSettings(true)
+      const data = await settingsApi.getStates(countryId)
+      setStates(data)
+    } catch (err) {
+      console.error('Failed to load states', err)
+    } finally {
+      setIsLoadingSettings(false)
+    }
+  }
+
+  const fetchDistricts = async (stateId: number) => {
+    try {
+      setIsLoadingSettings(true)
+      const data = await settingsApi.getDistricts(stateId)
+      setDistricts(data)
+    } catch (err) {
+      console.error('Failed to load districts', err)
+    } finally {
+      setIsLoadingSettings(false)
+    }
+  }
 
   const handleOpenModal = (address: ApiAddress | null = null) => {
     if (address) {
@@ -49,24 +93,54 @@ export function UserShippingAddressesPage() {
         a_type: address.a_type,
         address: address.address,
         extra_address: address.extra_address || '',
+        country_id: address.country_id || null,
+        state_id: address.state_id || null,
+        district_id: address.district_id || null,
         city: address.city || '',
         zipcode: address.zipcode || '',
         location: address.location || '',
         contact_number: address.contact_number?.startsWith('+91 ') ? address.contact_number : `+91 ${address.contact_number || ''}`.trim(),
       })
+      if (address.country_id) fetchStates(address.country_id)
+      if (address.state_id) fetchDistricts(address.state_id)
     } else {
       setEditingAddress(null)
       setFormData({
         a_type: 'Home',
         address: '',
         extra_address: '',
+        country_id: null,
+        state_id: null,
+        district_id: null,
         city: '',
         zipcode: '',
         location: '',
         contact_number: '+91 ',
       })
+      setStates([])
+      setDistricts([])
     }
     setIsModalOpen(true)
+  }
+
+  const handleCountryChange = (selectedOption: any) => {
+    const countryId = selectedOption ? selectedOption.value : null
+    setFormData({ ...formData, country_id: countryId, state_id: null, district_id: null })
+    setStates([])
+    setDistricts([])
+    if (countryId) fetchStates(countryId)
+  }
+
+  const handleStateChange = (selectedOption: any) => {
+    const stateId = selectedOption ? selectedOption.value : null
+    setFormData({ ...formData, state_id: stateId, district_id: null })
+    setDistricts([])
+    if (stateId) fetchDistricts(stateId)
+  }
+
+  const handleDistrictChange = (selectedOption: any) => {
+    const districtId = selectedOption ? selectedOption.value : null
+    setFormData({ ...formData, district_id: districtId })
   }
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,7 +235,14 @@ export function UserShippingAddressesPage() {
                 )}
                 <p>{addr.address}</p>
                 {addr.extra_address && <p>{addr.extra_address}</p>}
-                <p>{addr.city}{addr.zipcode ? `, ${addr.zipcode}` : ''}</p>
+                <p>
+                  {[
+                    addr.district?.name || addr.city,
+                    addr.state?.name,
+                    addr.country?.name,
+                    addr.zipcode
+                  ].filter(Boolean).join(', ')}
+                </p>
                 <div className="address-actions">
                   <button onClick={() => handleOpenModal(addr)} type="button">
                     <Icon className="icon-sm" name="edit" /> Edit
@@ -232,15 +313,50 @@ export function UserShippingAddressesPage() {
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>City</label>
-                  <input
-                    value={formData.city || ''}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    type="text"
+                  <label>Country</label>
+                  <Select
+                    className="react-select-container"
+                    classNamePrefix="react-select"
+                    value={countries.map(c => ({ value: c.id, label: c.name })).find(op => op.value === formData.country_id) || null}
+                    onChange={handleCountryChange}
+                    options={countries.map(c => ({ value: c.id, label: c.name }))}
+                    placeholder="Select Country"
+                    isClearable
+                    required
                   />
                 </div>
                 <div className="form-group">
-                  <label>Zipcode</label>
+                  <label>State {isLoadingSettings && <small className="text-muted ml-2">Loading...</small>}</label>
+                  <Select
+                    className="react-select-container"
+                    classNamePrefix="react-select"
+                    value={states.map(s => ({ value: s.id, label: s.name })).find(op => op.value === formData.state_id) || null}
+                    onChange={handleStateChange}
+                    options={states.map(s => ({ value: s.id, label: s.name }))}
+                    placeholder="Select State"
+                    isDisabled={!formData.country_id || states.length === 0}
+                    isClearable
+                    required
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>District {isLoadingSettings && <small className="text-muted ml-2">Loading...</small>}</label>
+                  <Select
+                    className="react-select-container"
+                    classNamePrefix="react-select"
+                    value={districts.map(d => ({ value: d.id, label: d.name })).find(op => op.value === formData.district_id) || null}
+                    onChange={handleDistrictChange}
+                    options={districts.map(d => ({ value: d.id, label: d.name }))}
+                    placeholder="Select District"
+                    isDisabled={!formData.state_id || districts.length === 0}
+                    isClearable
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Zipcode / PIN Code</label>
                   <input
                     value={formData.zipcode || ''}
                     onChange={(e) => setFormData({ ...formData, zipcode: e.target.value })}

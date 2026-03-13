@@ -4052,6 +4052,37 @@ input {
   animation: modalIn 0.3s ease-out;
 }
 
+.modal-content.address-modal {
+  width: min(700px, 100%);
+}
+
+/* Base override for react-select so it matches existing inputs */
+.react-select-container {
+  font-size: 0.95rem;
+}
+
+.react-select__control {
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  padding: 2px 4px !important;
+  box-shadow: none !important;
+  background-color: #fff !important;
+  transition: border-color 0.2s !important;
+}
+
+.react-select__control--is-focused {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(23, 84, 207, 0.1) !important;
+}
+
+.react-select__control--is-disabled {
+  background-color: #f8fafc !important;
+}
+
+.react-select__indicator-separator {
+  display: none;
+}
+
 @keyframes modalIn {
   from { opacity: 0; transform: translateY(10px) scale(0.95); }
   to { opacity: 1; transform: translateY(0) scale(1); }
@@ -4102,16 +4133,37 @@ input {
   color: var(--muted);
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 0.75rem;
   outline: 0;
   transition: border-color 0.2s;
+  font-family: inherit;
+  font-size: 0.95rem;
+  background-color: #fff;
 }
 
-.form-group input:focus {
+.form-group select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1em;
+  padding-right: 2.5rem;
+}
+
+.form-group select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f8fafc;
+}
+
+.form-group input:focus,
+.form-group select:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(23, 84, 207, 0.1);
 }
@@ -4266,22 +4318,33 @@ input {
 }
 
 .btn-action-sm {
-    padding: 6px 12px;
+    padding: 8px 16px;
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.5px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    background: var(--surface);
-    color: var(--text);
+    border: none;
+    border-radius: 6px;
+    background: var(--primary);
+    color: #ffffff;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn-action-sm:hover {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
+    background: #1e40af; /* slightly darker primary */
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+}
+
+.btn-action-sm:active {
+    transform: translateY(0);
 }
 
 /* Order Detail Grid & Layout */

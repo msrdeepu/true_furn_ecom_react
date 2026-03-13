@@ -68,6 +68,7 @@ function isAuthPath(path: string) {
 
 function App() {
   const [path, setPath] = useState(() => window.location.pathname.toLowerCase())
+  const [search, setSearch] = useState(() => window.location.search)
   const [isLoadingRoute, setIsLoadingRoute] = useState(false)
   const [loadingPath, setLoadingPath] = useState<string | null>(null)
   const { isLoading: isAuthLoading } = useAuth()
@@ -75,6 +76,7 @@ function App() {
   useEffect(() => {
     const onPopState = () => {
       setPath(window.location.pathname.toLowerCase())
+      setSearch(window.location.search)
     }
 
     const onDocumentClick = (event: MouseEvent) => {
@@ -101,6 +103,7 @@ function App() {
       setIsLoadingRoute(true)
       setLoadingPath(url.pathname.toLowerCase())
       window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`)
+      setSearch(url.search)
 
       window.setTimeout(() => {
         setPath(url.pathname.toLowerCase())
@@ -200,7 +203,7 @@ function App() {
         <HomePage />
       </MainLayout>
     )
-  }, [path])
+  }, [path, search])
 
   if (isAuthLoading || isLoadingRoute) {
     const targetPath = loadingPath ?? path

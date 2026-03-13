@@ -354,12 +354,22 @@ export type PhonePeOrderResponse = {
     state: string;
 }
 
+export type CODOrderResponse = {
+    status: boolean;
+    message: string;
+    order_db_id: number;
+    payment_method: string;
+    payment_status: string;
+    order_status: string;
+}
+
 export const paymentApi = {
     /** Create a Razorpay order via backend */
     async createRazorpayOrder(data: {
         user_id: number;
         amount: number;
         email: string;
+        order_tax_amount?: number;
         address_id: number;
         items: any[];
     }): Promise<RazorpayOrderResponse> {
@@ -388,14 +398,75 @@ export const paymentApi = {
         user_id: number;
         amount: number;
         email: string;
+        order_tax_amount?: number;
         address_id: number;
         items: any[];
     }): Promise<PhonePeOrderResponse> {
         await initCsrf()
-        return apiFetch('/api/phonepe/create-order/', {
+        return apiFetch('/api/phonepe/create-order', {
             method: 'POST',
             body: JSON.stringify(data),
         })
+    },
+
+    /** Create a Cash on Delivery order via backend */
+    async createCODOrder(data: {
+        user_id: number;
+        amount: number;
+        email: string;
+        order_tax_amount?: number;
+        address_id: number;
+        items: any[];
+    }): Promise<CODOrderResponse> {
+        await initCsrf()
+        return apiFetch('/api/payment/cod/place-order', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        })
+    }
+}
+
+// ─── Settings API (Country, State, District) ─────────────────────────────────
+
+export type ApiCountry = {
+    id: number
+    name: string
+}
+
+export type ApiState = {
+    id: number
+    name: string
+    country_id: number
+}
+
+export type ApiDistrict = {
+    id: number
+    name: string
+    state_id: number
+}
+
+export const settingsApi = {
+    async getCountries(): Promise<ApiCountry[]> {
+        const data = await apiFetch<{ status: boolean; data: ApiCountry[] }>('/api/settings/countries')
+        return data.data
+    },
+
+    async getStates(countryId: number): Promise<ApiState[]> {
+        await initCsrf()
+        const data = await apiFetch<{ status: boolean; data: ApiState[] }>('/api/settings/states', {
+            method: 'POST',
+            body: JSON.stringify({ country_id: countryId })
+        })
+        return data.data
+    },
+
+    async getDistricts(stateId: number): Promise<ApiDistrict[]> {
+        await initCsrf()
+        const data = await apiFetch<{ status: boolean; data: ApiDistrict[] }>('/api/settings/districts', {
+            method: 'POST',
+            body: JSON.stringify({ state_id: stateId })
+        })
+        return data.data
     }
 }
 // ─── Address API ──────────────────────────────────────────────────────────────
@@ -403,9 +474,9 @@ export type ApiAddress = {
     id: number
     user_id: number
     a_type: string // e.g., 'Home', 'Work'
-    country?: number | null
-    state?: number | null
-    district?: number | null
+    country_id?: number | null // DB stores country ID
+    state_id?: number | null // DB stores state ID
+    district_id?: number | null // DB stores district ID
     address: string // Line 1
     extra_address?: string | null // Line 2
     location?: string | null
@@ -415,9 +486,9 @@ export type ApiAddress = {
     created_at?: string
     updated_at?: string
     // Relationships if pre-loaded
-    country_name?: string
-    state_name?: string
-    district_name?: string
+    country?: ApiCountry | null
+    state?: ApiState | null
+    district?: ApiDistrict | null
 }
 
 export const addressApi = {
@@ -473,12 +544,15 @@ export type ApiOrderItem = {
     quantity: number
     price: number
     unit_total: number
+    tax_amount?: number
+    slab?: number
 }
 
 export type ApiOrder = {
     id: number
     user_id: number
     amount: number
+    tax_amount?: number
     email_address: string
     paypal_orderid: string | null
     reference_id: string | null
@@ -488,6 +562,55 @@ export type ApiOrder = {
     created_at: string
     items?: ApiOrderItem[]
     address?: any // Replace with ApiAddress if available in same file or import
+}
+
+export type ApiOrderDetails = {
+    order_id: number;
+    order_number: string | null;
+    tax_context: {
+        company_state_id: number;
+        address_state_id: number;
+        supply_type: string;
+        applied_tax: string;
+    };
+    customer_address: any;
+    items: {
+        id: number;
+        image: string | null; // NEW PROPERTY
+        product: { id: number; name: string };
+        variant: {
+            id: number;
+            name: string;
+            hsn_code: string;
+            tax_mode: string;
+            cgst_percent: number;
+            sgst_percent: number;
+            igst_percent: number;
+            cess_percent: number;
+        };
+        quantity: number;
+        unit_price: number;
+        subtotal: number;
+        tax_type: string;
+        tax_breakup: {
+            cgst: number;
+            sgst: number;
+            igst: number;
+            cess: number;
+            tax_total: number;
+        };
+        total: number;
+    }[];
+    summary: {
+        subtotal: number;
+        cgst_total: number;
+        sgst_total: number;
+        igst_total: number;
+        cess_total: number;
+        tax_total: number;
+        grand_total: number;
+    };
+    order: ApiOrder;
 }
 
 export const orderApi = {
@@ -506,8 +629,8 @@ export const orderApi = {
     },
 
     /** Get specific order details */
-    async get(id: number): Promise<ApiOrder> {
-        const data = await apiFetch<{ status: boolean; data: ApiOrder }>(`/api/orders/${id}`)
+    async get(id: number): Promise<ApiOrderDetails> {
+        const data = await apiFetch<{ status: boolean; data: ApiOrderDetails }>(`/api/orders/${id}`)
         return data.data
     },
 }

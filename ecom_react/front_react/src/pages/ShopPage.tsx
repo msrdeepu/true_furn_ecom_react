@@ -16,6 +16,11 @@ function formatPrice(n: number) {
 export function ShopPage() {
   const { addToCart } = useCart()
   const { variants, products, isLoading, error } = useProducts()
+
+  // Parse search query from URL
+  const searchParams = new URLSearchParams(window.location.search)
+  const query = searchParams.get('q') || ''
+  
   const [sort, setSort] = useState<SortKey>('featured')
   const [selectedRoomTypes, setSelectedRoomTypes] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null)
@@ -58,6 +63,17 @@ export function ShopPage() {
       list = list.filter((v) => selectedRoomTypes.includes(productRoomMap[String(v.product?.id)]))
     }
 
+    // Search filter
+    if (query) {
+      const q = query.toLowerCase()
+      list = list.filter((v) => {
+        const pName = (v.product?.name || '').toLowerCase()
+        const vName = (v.variant?.name || '').toLowerCase()
+        const sku = (v.variant?.sku || '').toLowerCase()
+        return pName.includes(q) || vName.includes(q) || sku.includes(q)
+      })
+    }
+
     // Price range filter
     const [lo, hi] = priceRange ?? [minPrice, maxPrice]
     list = list.filter((v) => {
@@ -68,7 +84,7 @@ export function ShopPage() {
     if (sort === 'price-asc') return [...list].sort((a, b) => +(a.pricing?.selling_price || a.pricing?.mrp || 0) - +(b.pricing?.selling_price || b.pricing?.mrp || 0))
     if (sort === 'price-desc') return [...list].sort((a, b) => +(b.pricing?.selling_price || b.pricing?.mrp || 0) - +(a.pricing?.selling_price || a.pricing?.mrp || 0))
     return list
-  }, [variants, sort, selectedRoomTypes, productRoomMap, priceRange, minPrice, maxPrice])
+  }, [variants, sort, selectedRoomTypes, productRoomMap, priceRange, minPrice, maxPrice, query])
 
   const getVariantImage = (images: string[]) => {
     const first = images[0]
@@ -104,7 +120,7 @@ export function ShopPage() {
             <p>
               Curated collection of premium pieces designed for timeless comfort
               and modern elegance.
-              {!isLoading && <> &mdash; <strong>{sorted.length}</strong> items</>}
+              {!isLoading && <> &mdash; <strong>{sorted.length}</strong> items {query && `found for "${query}"`}</>}
             </p>
           </div>
           <div className="shop-sort">

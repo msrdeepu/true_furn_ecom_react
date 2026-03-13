@@ -162,7 +162,7 @@ export function UserAccountSettingsPage() {
             </label>
             </div>
             <div className="settings-actions">
-            <button className="btn-dark" type="submit" disabled={isUpdatingPassword}>
+            <button className="btn-primary" type="submit" disabled={isUpdatingPassword}>
                 {isUpdatingPassword ? 'Changing...' : 'Change Password'}
             </button>
             </div>

@@ -5,19 +5,20 @@ import { useToast } from '../context/ToastContext'
 import { addressApi, paymentApi, RAZORPAY_KEY } from '../api'
 import type { ApiAddress } from '../api'
 import { Icon } from '../components/ui/Icon'
+import { useProducts } from '../hooks/useProducts'
 
 export function CartPage() {
   const { user } = useAuth()
   const { showToast } = useToast()
-  const { items, subtotal, totalItems, increaseQty, decreaseQty, removeFromCart, clearCart } =
+  const { items, totalItems, increaseQty, decreaseQty, removeFromCart, clearCart } =
     useCart()
   const [isProcessing, setIsProcessing] = useState(false)
   const [addresses, setAddresses] = useState<ApiAddress[]>([])
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null)
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState<'phonepe' | 'razorpay'>(
-    'razorpay'
-  )
+  const [paymentMethod, setPaymentMethod] = useState<'phonepe' | 'razorpay' | 'cod'>('razorpay')
+
+  const { variants } = useProducts()
 
   useEffect(() => {
     if (user) {
@@ -41,8 +42,57 @@ export function CartPage() {
       setIsLoadingAddresses(false)
     }
   }
-  const tax = subtotal * 0.08
-  const total = subtotal + tax
+
+  let computedSubtotal = 0;
+  let totalTaxBreakup = 0;
+  let totalExclusiveTax = 0;
+  let totalMrp = 0;
+
+  const enrichedItems = items.map(item => {
+    const vId = item.id.replace('variant-', '');
+    const variant = variants.find(v => v.id.toString() === vId);
+    
+    const qty = item.qty;
+    const price = item.price;
+    const lineTotal = price * qty;
+    computedSubtotal += lineTotal;
+
+    let taxAmount = 0;
+    let taxLabel = 'GST';
+    let taxPercent = 0;
+    let mrp = price;
+
+    if (variant) {
+      taxPercent = parseFloat((variant.tax as any)?.tax || variant.tax?.percent || '0');
+      taxLabel = (variant.tax as any)?.label || 'GST';
+      const taxMode = variant.tax?.mode?.toLowerCase() || 'inclusive';
+      mrp = parseFloat(variant.pricing?.mrp || price.toString());
+
+      if (taxPercent > 0) {
+        if (taxMode === 'exclusive') {
+          taxAmount = lineTotal * (taxPercent / 100);
+          totalExclusiveTax += taxAmount;
+        } else {
+          // Inclusive: Tax is already inside lineTotal
+          taxAmount = lineTotal - (lineTotal / (1 + taxPercent / 100));
+        }
+      }
+    }
+    
+    totalTaxBreakup += taxAmount;
+    totalMrp += (mrp * qty);
+
+    return {
+      ...item,
+      taxAmount,
+      taxPercent,
+      taxLabel,
+      mrp
+    }
+  });
+
+  const totalDiscount = totalMrp - computedSubtotal;
+  const grandTotal = computedSubtotal + totalExclusiveTax;
 
   const handleCheckout = async () => {
     if (!user) {
@@ -62,10 +112,11 @@ export function CartPage() {
     try {
       const orderPayload = {
         user_id: user!.id,
-        amount: Math.round(total),
+        amount: Math.round(grandTotal),
         email: user!.email,
+        order_tax_amount: totalTaxBreakup,
         address_id: selectedAddressId,
-        items: items.map(item => {
+        items: enrichedItems.map(item => {
           const vId = item.id.includes('variant-') ? item.id.replace('variant-', '') : item.id;
           return {
             variant_id: parseInt(vId, 10),
@@ -73,12 +124,27 @@ export function CartPage() {
             name: item.name,
             quantity: item.qty,
             price: item.price,
-            image: item.image
+            image: item.image,
+            item_tax_amount: item.taxAmount,
+            slab: item.taxPercent
           }
         })
       };
 
-      if (paymentMethod === 'razorpay') {
+      if (paymentMethod === 'cod') {
+        // --- COD Flow ---
+        const orderData = await paymentApi.createCODOrder(orderPayload);
+
+        if (!orderData.status) {
+          throw new Error(orderData.message || 'Failed to place COD order')
+        }
+
+        showToast('Order Placed Successfully!', 'success')
+        clearCart()
+        setTimeout(() => {
+          window.location.href = '/dashboard?payment=success'
+        }, 1500)
+      } else if (paymentMethod === 'razorpay') {
         // --- Razorpay Flow ---
         const orderData = await paymentApi.createRazorpayOrder(orderPayload);
 
@@ -105,7 +171,7 @@ export function CartPage() {
                 showToast('Payment Successful!', 'success')
                 clearCart()
                 setTimeout(() => {
-                  window.location.href = '/dashboard'
+                  window.location.href = '/dashboard?payment=success'
                 }, 1500)
               } else {
                 showToast('Payment verification failed: ' + verification.message, 'error')
@@ -152,7 +218,7 @@ export function CartPage() {
       showToast('Checkout Error: ' + err.message, 'error')
     } finally {
       // For PhonePe, we don't set isProcessing to false immediately as we redirect
-      if (paymentMethod === 'razorpay') {
+      if (paymentMethod === 'razorpay' || paymentMethod === 'cod') {
         setIsProcessing(false)
       }
     }
@@ -185,7 +251,7 @@ export function CartPage() {
                 </div>
               )}
 
-              {items.map((item) => (
+              {enrichedItems.map((item) => (
                 <article className="cart-item" key={item.id}>
                   <div className="cart-item-image">
                     <img alt={item.name} src={item.image} />
@@ -193,7 +259,18 @@ export function CartPage() {
                   <div className="cart-item-main">
                     <h3>{item.name}</h3>
                     <p>{item.meta || 'Premium furniture selection'}</p>
-                    <span className="line-price">{formatINR(item.price)}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.25rem 0' }}>
+                       <span className="line-price" style={{ margin: 0 }}>{formatINR(item.price)}</span>
+                       {item.mrp > item.price && (
+                         <span style={{ textDecoration: 'line-through', opacity: 0.5, fontSize: '0.8rem' }}>{formatINR(item.mrp)}</span>
+                       )}
+                    </div>
+                    {item.taxPercent > 0 && (
+                        <span style={{ display: 'inline-block', fontSize: '0.7rem', background: '#f5f5f5', padding: '2px 6px', borderRadius: '4px', border: '1px solid #eee', color: '#666', marginTop: '4px' }}>
+                           {item.taxLabel} {item.taxPercent}% 
+                           {item.taxAmount > 0 ? ` (+${formatINR(item.taxAmount)})` : ' (Inclusive)'}
+                        </span>
+                    )}
                     <div className="cart-item-actions">
                       <div className="qty-box">
                         <button onClick={() => decreaseQty(item.id)} type="button">
@@ -232,20 +309,30 @@ export function CartPage() {
           <aside className="cart-summary">
             <h2>Order Summary</h2>
             <div className="summary-row">
+              <span>Total MRP</span>
+              <strong>{formatINR(totalMrp)}</strong>
+            </div>
+            {totalDiscount > 0 && (
+            <div className="summary-row" style={{ color: 'var(--clr-accent, #2e7d32)' }}>
+              <span>Discount</span>
+              <strong>-{formatINR(totalDiscount)}</strong>
+            </div>
+            )}
+            <div className="summary-row">
               <span>Subtotal</span>
-              <strong>{formatINR(subtotal)}</strong>
+              <strong>{formatINR(computedSubtotal)}</strong>
             </div>
             <div className="summary-row">
-              <span>Shipping Estimate</span>
-              <strong className="ok-green">Free</strong>
+              <span>Shipping Charges</span>
+              <span className="badge-pill-elite badge-primary-lite">Additional</span>
             </div>
             <div className="summary-row">
-              <span>Tax Estimate</span>
-              <strong>{formatINR(Math.round(tax))}</strong>
+              <span>Tax ({totalExclusiveTax > 0 ? 'Exclusive' : 'Inclusive'})</span>
+              <strong>{totalExclusiveTax > 0 ? `+${formatINR(totalExclusiveTax)}` : 'Included'}</strong>
             </div>
             <div className="summary-total">
-              <span>Total Order</span>
-              <strong>{formatINR(Math.round(total))}</strong>
+              <span>Final Total</span>
+              <strong>{formatINR(Math.round(grandTotal))}</strong>
             </div>
             {user ? (
               <>
@@ -293,8 +380,8 @@ export function CartPage() {
                   )}
                 </div>
 
-                <div className="payment-methods">
-                  <p className="summary-section-title">Payment Method</p>
+                <div className="payment-methods" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginTop: '1.5rem' }}>
+                  <p className="summary-section-title" style={{ gridColumn: '1 / -1', marginBottom: '0.2rem' }}>Payment Method</p>
                   <label className="payment-option">
                     <input
                       checked={paymentMethod === 'phonepe'}
@@ -302,6 +389,7 @@ export function CartPage() {
                       onChange={() => setPaymentMethod('phonepe')}
                       type="radio"
                     />
+                    <Icon name="phonepe" className="icon-md" />
                     <span>PhonePe</span>
                   </label>
                   <label className="payment-option">
@@ -311,7 +399,18 @@ export function CartPage() {
                       onChange={() => setPaymentMethod('razorpay')}
                       type="radio"
                     />
+                    <Icon name="razorpay" className="icon-md" />
                     <span>Razorpay</span>
+                  </label>
+                  <label className="payment-option" style={{ gridColumn: '1 / -1' }}>
+                    <input
+                      checked={paymentMethod === 'cod'}
+                      name="payment-method"
+                      onChange={() => setPaymentMethod('cod')}
+                      type="radio"
+                    />
+                    <Icon name="cash" className="icon-md" />
+                    <span>Cash on Delivery</span>
                   </label>
                 </div>
                 <button
@@ -320,7 +419,7 @@ export function CartPage() {
                   onClick={handleCheckout}
                   type="button"
                 >
-                  {isProcessing ? 'Processing...' : `Proceed with ${paymentMethod === 'phonepe' ? 'PhonePe' : 'Razorpay'}`}
+                  {isProcessing ? 'Processing...' : `Proceed with ${paymentMethod === 'phonepe' ? 'PhonePe' : paymentMethod === 'razorpay' ? 'Razorpay' : 'COD'}`}
                 </button>
               </>
             ) : (

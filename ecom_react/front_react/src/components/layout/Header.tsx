@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Icon } from '../ui/Icon'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthHook'
@@ -16,6 +16,39 @@ export function Header() {
   const { totalItems } = useCart()
   const { user } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // Sync with URL query on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const q = params.get('q')
+    if (q) setSearchQuery(q)
+  }, [])
+
+  // Client-side navigation helper
+  const navigate = (to: string) => {
+    window.history.pushState({}, '', to)
+    window.dispatchEvent(new PopStateEvent('popstate'))
+  }
+
+  // Handle Search Submission (Enter)
+  const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const q = searchQuery.trim()
+      navigate(`/shop${q ? `?q=${encodeURIComponent(q)}` : ''}`)
+    }
+  }
+
+  // Handle Live Search (Type)
+  const handleLiveSearch = (val: string) => {
+    setSearchQuery(val)
+    // If already on shop page, update URL live
+    if (window.location.pathname.toLowerCase() === '/shop') {
+      const url = val.trim() ? `/shop?q=${encodeURIComponent(val.trim())}` : '/shop'
+      window.history.pushState({}, '', url)
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    }
+  }
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen((open) => !open)
@@ -49,7 +82,7 @@ export function Header() {
         <div className="nav-left">
           <div className="brand-wrap">
             <Icon name="chair" className="brand-icon" />
-            <h2 className="brand-title">TRUE FURN</h2>
+            <h2 className="brand-title">TREEFURN</h2>
           </div>
           <nav className="main-nav">
             {navItems.map((item) => (
@@ -67,6 +100,9 @@ export function Header() {
               className="search-input"
               placeholder="Search furniture..."
               type="text"
+              value={searchQuery}
+              onChange={(e) => handleLiveSearch(e.target.value)}
+              onKeyDown={handleSearchSubmit}
             />
           </div>
           <a className="icon-btn cart-icon-btn" href="/cart">
@@ -104,7 +140,7 @@ export function Header() {
         <div className="mobile-menu-head">
           <div className="brand-wrap">
             <Icon name="chair" className="brand-icon" />
-            <h2 className="brand-title">TRUE FURN</h2>
+            <h2 className="brand-title">TREEFURN</h2>
           </div>
           <button
             className="icon-btn mobile-menu-close"

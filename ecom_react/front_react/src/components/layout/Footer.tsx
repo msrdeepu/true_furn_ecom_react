@@ -25,7 +25,7 @@ export function Footer() {
           <div className="footer-brand-block">
             <div className="brand-wrap">
               <Icon name="chair" className="brand-icon" />
-              <h2 className="brand-title">TRUE FURN</h2>
+              <h2 className="brand-title">TREEFURN</h2>
             </div>
             <p className="footer-text">
               Designing for a better, more beautiful tomorrow. Your home,
@@ -72,7 +72,7 @@ export function Footer() {
         </div>
 
         <div className="footer-bottom">
-          <p>Copyright 2026 TRUE FURN Inc. All rights reserved.</p>
+          <p>Copyright 2026 TREEFURN Inc. All rights reserved.</p>
           <div className="footer-bottom-links">
             <a href="/privacy-policy">
               Privacy Policy

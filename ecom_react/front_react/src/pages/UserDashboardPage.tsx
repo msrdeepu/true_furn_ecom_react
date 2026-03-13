@@ -4,15 +4,39 @@ import { Icon } from '../components/ui/Icon'
 import { useAuth } from '../context/AuthHook'
 import { orderApi } from '../api'
 import type { ApiOrder } from '../api'
-import { formatINR } from '../context/CartContext'
+import { formatINR, useCart } from '../context/CartContext'
+import { useToast } from '../context/ToastContext'
+import confetti from 'canvas-confetti'
 
 export function UserDashboardPage() {
   const { user } = useAuth()
+  const { clearCart } = useCart()
+  const { showToast } = useToast()
+  
   const [orders, setOrders] = useState<ApiOrder[]>([])
   const [latestOrder, setLatestOrder] = useState<ApiOrder | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   const displayName = user?.name || 'Customer'
+
+  // PhonePe Success Redirect Handler
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('payment') === 'success') {
+      // Clear URL params without reloading to prevent double triggers
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      clearCart();
+      showToast('Payment successful! Your order has been placed.', 'success');
+      
+      // Fire confetti celebration matching the Razorpay flow
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -133,8 +157,8 @@ export function UserDashboardPage() {
                       </span>
                     </td>
                     <td>
-                      <a className="more-btn" href={`/account/orders/${order.id}`}>
-                        <Icon className="icon-sm" name="visibility" />
+                      <a className="btn-action-sm" href={`/account/orders/${order.id}`}>
+                        View <Icon className="icon-sm" name="chevron_right" style={{ marginLeft: '4px' }} />
                       </a>
                     </td>
                   </tr>

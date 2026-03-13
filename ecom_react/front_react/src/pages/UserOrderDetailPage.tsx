@@ -3,12 +3,12 @@ import { UserDashboardLayout } from '../components/layout/UserDashboardLayout'
 import { Icon } from '../components/ui/Icon'
 import { useAuth } from '../context/AuthHook'
 import { orderApi } from '../api'
-import type { ApiOrder } from '../api'
+import type { ApiOrderDetails } from '../api'
 import { formatINR } from '../context/CartContext'
 
 export function UserOrderDetailPage() {
   const { user } = useAuth()
-  const [order, setOrder] = useState<ApiOrder | null>(null)
+  const [orderData, setOrderData] = useState<ApiOrderDetails | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   
   // Get ID from URL since we're using a simple router
@@ -24,7 +24,7 @@ export function UserOrderDetailPage() {
     setIsLoading(true)
     try {
       const data = await orderApi.get(parseInt(orderId!))
-      setOrder(data)
+      setOrderData(data)
     } catch (err) {
       console.error('Failed to fetch order details', err)
     } finally {
@@ -40,7 +40,7 @@ export function UserOrderDetailPage() {
     )
   }
 
-  if (!order) {
+  if (!orderData) {
     return (
       <UserDashboardLayout active="orders" title="Order Not Found" subtitle="We couldn't find the order you're looking for.">
         <div style={{ padding: '4rem', textAlign: 'center' }}>
@@ -50,6 +50,22 @@ export function UserOrderDetailPage() {
       </UserDashboardLayout>
     )
   }
+
+  const { order, items, summary, tax_context, customer_address } = orderData;
+  
+  // Revised Tax Deduction Logic: 
+  // Prioritize the raw tax_amount column from the orders table if available.
+  const totalTaxAmount = order.tax_amount && order.tax_amount > 0 ? order.tax_amount : (summary.tax_total > 0 ? summary.tax_total : (order.amount - summary.subtotal > 0 ? (order.amount - summary.subtotal) : 0));
+  const displaySubtotal = order.amount - totalTaxAmount;
+
+  // Split logic for fallback display
+  const isInterState = tax_context?.supply_type === 'inter_state';
+  const fallbackCGST = totalTaxAmount > 0 && !isInterState && summary.cgst_total === 0 ? totalTaxAmount / 2 : summary.cgst_total;
+  const fallbackSGST = totalTaxAmount > 0 && !isInterState && summary.sgst_total === 0 ? totalTaxAmount / 2 : summary.sgst_total;
+  const fallbackIGST = totalTaxAmount > 0 && isInterState && summary.igst_total === 0 ? totalTaxAmount : summary.igst_total;
+
+  // Calculate Shipping Fee dynamically
+
 
   return (
     <UserDashboardLayout
@@ -62,7 +78,7 @@ export function UserOrderDetailPage() {
         <div className="order-header-elite">
           <div className="order-id-block-elite">
             <h2>
-              Order <span>#{order.id}</span>
+              Order <span>#{orderData.order_id}</span>
             </h2>
             <div className="order-meta-elite">
               <span className="order-date-elite">
@@ -76,8 +92,8 @@ export function UserOrderDetailPage() {
             </div>
           </div>
           <div>
-            <span className={`order-status-badge-elite ${order.status.toLowerCase().replace(/\s+/g, '-')}`}>
-              {order.status}
+            <span className={`order-status-badge-elite ${order.status?.toLowerCase().replace(/\s+/g, '-') || ''}`}>
+              {order.status || 'Unknown'}
             </span>
           </div>
         </div>
@@ -94,37 +110,47 @@ export function UserOrderDetailPage() {
                   Items Summary
                 </h3>
                 <span className="text-sm font-bold text-gray-400 bg-white px-4 py-1.5 rounded-full border border-gray-100">
-                  {order.items?.length || 0} Products
+                  {items?.length || 0} Products
                 </span>
               </div>
               <div className="elite-card-body !pt-4">
                 <div className="order-items-list-elite">
-                  {order.items && order.items.length > 0 ? (
-                    order.items.map((item) => (
+                  {items && items.length > 0 ? (
+                    items.map((item) => {
+                      const rawItem = order.items?.find((i) => i.id === item.id)
+                      const imageUrl = rawItem?.image || 'https://via.placeholder.com/100?text=No+Image'
+                      
+                      return (
                       <div key={item.id} className="order-item-elite">
                         <div className="order-item-thumb-wrap">
                           <img 
-                            src={item.image || 'https://via.placeholder.com/100?text=No+Image'} 
-                            alt={item.name} 
+                            src={imageUrl} 
+                            alt={item.product?.name} 
                             className="order-item-thumb"
                           />
                         </div>
                         <div className="order-item-info">
-                          <h4 className="order-item-title">{item.name}</h4>
-                          <div className="order-item-meta">
+                          <h4 className="order-item-title">{item.product?.name}</h4>
+                          <span className="text-xs font-bold text-gray-400">Variant: {item.variant?.name || 'Standard'}</span>
+                          <div className="order-item-meta mt-1">
                             <span className="meta-pill primary">
                                Qty: {item.quantity}
                             </span>
                             <span className="meta-pill">
-                               {formatINR(item.price)} per unit
+                               {formatINR(item.unit_price)} / unit
                             </span>
+                            {(item.tax_breakup?.tax_total > 0 || (rawItem && rawItem.tax_amount && rawItem.tax_amount > 0)) && (
+                             <span className="meta-pill text-xs">
+                               Tax ({item.tax_type}) {rawItem?.slab ? `${rawItem.slab}%` : ''}: {formatINR(rawItem && rawItem.tax_amount && rawItem.tax_amount > 0 ? rawItem.tax_amount : (item.tax_breakup?.tax_total || 0))}
+                             </span>
+                            )}
                           </div>
                         </div>
                         <div className="order-item-price-total">
-                          <p className="total-price-text">{formatINR(item.unit_total)}</p>
+                          <p className="total-price-text">{formatINR(item.total)}</p>
                         </div>
                       </div>
-                    ))
+                    )})
                   ) : (
                     <div className="py-20 text-center">
                       <div className="w-20 h-20 bg-gray-50 rounded-full flex-center mx-auto mb-4 border border-dashed border-gray-200">
@@ -138,20 +164,44 @@ export function UserOrderDetailPage() {
               <div className="elite-card-footer !bg-[#f8fafc]/50">
                 <div className="elite-summary-wrap">
                   <div className="summary-row-elite">
-                    <span className="summary-label-elite">Subtotal</span>
-                    <span className="summary-value-elite">{formatINR(order.amount)}</span>
+                    <span className="summary-label-elite">Subtotal (Without Tax)</span>
+                    <span className="summary-value-elite text-gray-700">{formatINR(displaySubtotal)}</span>
                   </div>
-                  <div className="summary-row-elite">
-                    <span className="summary-label-elite">
+                  
+                  {/* Dynamic Tax Rows */}
+                  {/* Dynamic Tax Rows (Including Fallbacks) */}
+                  {fallbackCGST > 0 && (
+                      <div className="summary-row-elite">
+                        <span className="summary-label-elite text-xs">CGST</span>
+                        <span className="summary-value-elite text-xs text-gray-500">+{formatINR(fallbackCGST)}</span>
+                      </div>
+                  )}
+                  {fallbackSGST > 0 && (
+                      <div className="summary-row-elite">
+                        <span className="summary-label-elite text-xs">SGST</span>
+                        <span className="summary-value-elite text-xs text-gray-500">+{formatINR(fallbackSGST)}</span>
+                      </div>
+                  )}
+                  {fallbackIGST > 0 && (
+                      <div className="summary-row-elite">
+                        <span className="summary-label-elite text-xs">IGST</span>
+                        <span className="summary-value-elite text-xs text-gray-500">+{formatINR(fallbackIGST)}</span>
+                      </div>
+                  )}
+
+                  <div className="summary-row-elite pt-3 border-t border-gray-100">
+                    <span className="summary-label-elite font-bold">
                       <Icon name="local_shipping" className="icon-xs" />
-                      Shipping Fee
+                      Shipping Charges
                     </span>
-                    <span className="summary-value-elite free">FREE</span>
+                    <span className="summary-value-elite">
+                      <span className="meta-pill primary uppercase text-[10px] tracking-widest px-3 py-1">Additional</span>
+                    </span>
                   </div>
-                  <div className="elite-total-cta">
+                  <div className="elite-total-cta mt-4">
                     <div className="final-amount-block">
                         <h5>Final Amount</h5>
-                        <p>Inclusive of all taxes</p>
+                        <p>{tax_context?.applied_tax} Inclusive</p>
                     </div>
                     <div className="final-price-elite">
                         {formatINR(order.amount)}
@@ -187,14 +237,14 @@ export function UserOrderDetailPage() {
                       <p className="font-black !text-gray-900 uppercase tracking-widest text-xs mt-1">Status: {order.payment_status || 'NOT INITIALIZED'}</p>
                     </div>
                   </div>
-                  <div className={`timeline-item-elite ${['shipped', 'delivered'].includes(order.status.toLowerCase()) ? 'active' : ''}`}>
+                  <div className={`timeline-item-elite ${['shipped', 'delivered'].includes(order.status?.toLowerCase() || '') ? 'active' : ''}`}>
                     <div className="timeline-marker-elite"></div>
                     <div className="timeline-content-elite">
                       <h4>Shipment Details</h4>
                       <p>{order.status === 'Shipped' || order.status === 'Delivered' ? 'Your package is on its way to the delivery address.' : 'Your order is currently being prepared for dispatch.'}</p>
                     </div>
                   </div>
-                  <div className={`timeline-item-elite ${order.status.toLowerCase() === 'delivered' ? 'active' : ''}`}>
+                  <div className={`timeline-item-elite ${order.status?.toLowerCase() === 'delivered' ? 'active' : ''}`}>
                     <div className="timeline-marker-elite"></div>
                     <div className="timeline-content-elite">
                       <h4>Delivery</h4>
@@ -268,24 +318,24 @@ export function UserOrderDetailPage() {
                 <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Shipping Destination</h3>
               </div>
               <div className="elite-card-body !p-8">
-                {order.address ? (
+                {customer_address ? (
                   <div>
                     <div className="inline-flex items-center gap-2 bg-primary/5 px-4 py-1 rounded-full border border-primary/10 mb-6">
                       <Icon name="location" className="icon-xs text-primary" />
-                      <span className="text-[10px] font-black uppercase text-primary tracking-widest">{order.address.a_type}</span>
+                      <span className="text-[10px] font-black uppercase text-primary tracking-widest">{customer_address.a_type}</span>
                     </div>
-                    <p className="text-xl font-extrabold text-gray-900 leading-tight mb-2">{order.address.address}</p>
-                    {order.address.extra_address && (
-                      <p className="text-gray-500 font-bold mb-6 text-sm leading-relaxed">{order.address.extra_address}</p>
+                    <p className="text-xl font-extrabold text-gray-900 leading-tight mb-2">{customer_address.address}</p>
+                    {customer_address.extra_address && (
+                      <p className="text-gray-500 font-bold mb-6 text-sm leading-relaxed">{customer_address.extra_address}</p>
                     )}
                     <div className="pt-6 border-t border-gray-100 mt-6 grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider mb-1">City</p>
-                        <p className="text-sm font-bold text-gray-900">{order.address.city}</p>
+                        <p className="text-sm font-bold text-gray-900">{customer_address.city}</p>
                       </div>
                       <div>
                         <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider mb-1">Zip Code</p>
-                        <p className="text-sm font-bold text-gray-900">{order.address.zipcode}</p>
+                        <p className="text-sm font-bold text-gray-900">{customer_address.zipcode}</p>
                       </div>
                     </div>
                   </div>
@@ -298,7 +348,6 @@ export function UserOrderDetailPage() {
               </div>
             </div>
 
-            {/* Reference section removed, moved to header */}
           </div>
         </div>
       </div>
