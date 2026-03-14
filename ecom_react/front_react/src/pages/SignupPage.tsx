@@ -39,12 +39,9 @@ export function SignupPage() {
   return (
     <div className="auth-shell">
       <header className="auth-header">
-        <div className="auth-brand">
-          <div className="auth-brand-badge">
-            <Icon name="chair" className="icon-sm" />
-          </div>
-          <h2>TRUE FURN</h2>
-        </div>
+        <a className="auth-brand" href="/">
+          <img src="/logos/tree_furn_logo.png" alt="TREEFURN" className="brand-logo" />
+        </a>
         <a className="auth-close-btn" href="/">
           <Icon name="close" className="icon-sm" />
         </a>

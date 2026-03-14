@@ -256,36 +256,46 @@ export function ShopPage() {
                   const mrp = +(variant.pricing?.mrp || 0)
                   const hasDiscount = mrp > price
                   const discountPct = hasDiscount ? Math.round(((mrp - price) / mrp) * 100) : 0
-                  const isOffer = variant.offer?.active || false
-                  const badge = (isOffer && discountPct > 0) ? `${discountPct}% OFF` : (variant.inventory?.quantity || variant.inventory?.stock_status || 'In Stock')
-                  const variantDisplayName = variant.variant?.name || variant.product?.name || 'Unnamed Product'
+                  const inv = variant.inventory
+                  let stockBadge = 'In Stock'
+                  if (inv) {
+                    if (inv.stock_detail?.toLowerCase() === 'out of stock' && inv.available_after_days) {
+                      stockBadge = `Ships in ${inv.available_after_days} Days`
+                    } else {
+                      stockBadge = inv.stock_detail || 'In Stock'
+                    }
+                  }
+                  const discountBadge = discountPct > 0 ? `${discountPct}% OFF` : null
+                  const variantDisplayName = variant.variant?.vname || variant.variant?.name || variant.product?.name || 'Unnamed Product'
 
                   return (
                     <article key={variant.id} className="shop-card">
                       <div className="shop-image-wrap">
+                        <div className="shop-badge">{stockBadge}</div>
                         <a href={`/product?vid=${variant.id}`}>
                           <img src={imgSrc} alt={variantDisplayName} />
                         </a>
                       </div>
                       <div className="shop-card-body">
-                        <div className="shop-card-top">
-                          <small>{badge}</small>
-                          <span>{variant.product?.name}</span>
-                        </div>
-                        <h4>{variantDisplayName}</h4>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-                          <strong>{formatPrice(price)}</strong>
-                          {hasDiscount && (
-                            <small style={{ textDecoration: 'line-through', opacity: 0.5 }}>
-                              {formatPrice(mrp)}
+                        <h4 className="shop-card-title">
+                          {variantDisplayName}
+                        </h4>
+                        {variant.variant?.variant_model && (
+                          <div className="badge-model">
+                            MODEL: {variant.variant.variant_model}
+                          </div>
+                        )}
+                        <div style={{ marginTop: '0.4rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <strong>{formatPrice(price)}</strong>
+                            {discountBadge && <span className="badge-discount">{discountBadge}</span>}
+                          </div>
+                          {variant.attributes?.material && (
+                            <small style={{ display: 'block', opacity: 0.6, fontSize: '0.85rem', marginTop: '2px' }}>
+                              {variant.attributes.material}{variant.attributes.color ? ` · ${variant.attributes.color}` : ''}
                             </small>
                           )}
                         </div>
-                        {variant.attributes?.material && (
-                          <small style={{ opacity: 0.6 }}>
-                            {variant.attributes.material}{variant.attributes.color ? ` · ${variant.attributes.color}` : ''}
-                          </small>
-                        )}
                         <div className="shop-card-actions">
                           <button
                             className="shop-btn-add"
@@ -296,6 +306,7 @@ export function ShopPage() {
                                 price,
                                 image: imgSrc,
                                 meta: variant.variant?.sku ? `SKU: ${variant.variant.sku}` : undefined,
+                                variant_model: variant.variant?.variant_model || undefined
                               })
                             }
                             type="button"
@@ -311,9 +322,19 @@ export function ShopPage() {
                   )
                 })}
                 {sorted.length === 0 && (
-                  <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', opacity: 0.5 }}>
-                    <Icon name="image" className="icon-lg" />
-                    <p>No products found for selected filters.</p>
+                  <div className="empty-state">
+                    <Icon name="search" className="icon-empty" />
+                    <h3>No products found</h3>
+                    <p>We couldn't find any products matching your current filters. Try adjusting them to see more options.</p>
+                    <button 
+                      className="btn-explore"
+                      onClick={() => {
+                        setSelectedRoomTypes([])
+                        setPriceRange(null)
+                      }}
+                    >
+                      Reset All Filters
+                    </button>
                   </div>
                 )}
               </div>

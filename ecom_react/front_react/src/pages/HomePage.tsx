@@ -88,8 +88,8 @@ export function HomePage() {
                 corner of your home.
               </p>
             </div>
-            <a href="#">
-              Browse all collections <Icon name="chevron_right" className="icon-sm" />
+            <a href="/shop">
+              Shop Now <Icon name="chevron_right" className="icon-sm" />
             </a>
           </div>
 
@@ -124,9 +124,25 @@ export function HomePage() {
               : trendingItems.map((variant) => {
                 const imgSrc = getImageUrl(variant.media.images[0]) ?? PLACEHOLDER
                 const price = +(variant.pricing.selling_price ?? 0)
+                const mrp = +(variant.pricing.mrp ?? 0)
+                const hasDiscount = mrp > price
+                const discountPct = hasDiscount ? Math.round(((mrp - price) / mrp) * 100) : 0
+                
+                const inv = variant.inventory
+                let stockBadge = 'In Stock'
+                if (inv) {
+                  if (inv.stock_detail?.toLowerCase() === 'out of stock' && inv.available_after_days) {
+                    stockBadge = `Ships in ${inv.available_after_days} Days`
+                  } else {
+                    stockBadge = inv.stock_detail || 'In Stock'
+                  }
+                }
+                const discountBadge = discountPct > 0 ? `${discountPct}% OFF` : null
+
                 return (
                   <a key={variant.id} className="product-card" href={`/product?vid=${variant.id}`}>
                     <div className="product-image-wrap">
+                      <div className="shop-badge">{stockBadge}</div>
                       <img src={imgSrc} alt={variant.variant.name ?? ''} />
                       <button
                         className="product-cart-btn"
@@ -147,12 +163,21 @@ export function HomePage() {
                     </div>
                     <div className="product-meta">
                       <div>
-                        <h4>{variant.variant.name}</h4>
-                        <div className="rating-line">
-                          <small>{variant.product.name}</small>
+                        <h4 style={{ fontSize: '1.4rem' }}>{variant.variant.vname || variant.variant.name || variant.product.name}</h4>
+                        {variant.variant.variant_model && (
+                          <div className="badge-model">
+                            MODEL: {variant.variant.variant_model}
+                          </div>
+                        )}
+                        <div className="rating-line" style={{ marginTop: '0.4rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <strong style={{ fontSize: '1.6rem', display: 'block', margin: '0.3rem 0' }}>
+                              Rs {price.toLocaleString('en-IN')}
+                            </strong>
+                            {discountBadge && <span className="badge-discount">{discountBadge}</span>}
+                          </div>
                         </div>
                       </div>
-                      <strong>Rs {price.toLocaleString('en-IN')}</strong>
                     </div>
                   </a>
                 )
@@ -200,18 +225,19 @@ export function HomePage() {
 
       <section className="newsletter-section">
         <div className="container newsletter-box">
-          <h2>Join Our Community</h2>
+          <h2>Join Our WhatsApp Community</h2>
           <p>
-            Subscribe for exclusive early access to new collections and home
-            styling tips from our designers.
+            Get exclusive early access to new collections and home styling tips 
+            directly on your phone.
           </p>
-          <form>
-            <input placeholder="Enter your email" type="email" />
+          <form className="whatsapp-form-elite" onSubmit={(e) => e.preventDefault()}>
+            <input placeholder="Your Name" type="text" required />
+            <input placeholder="WhatsApp Number" type="tel" required />
             <button className="btn-primary" type="submit">
-              Subscribe
+              Join Now
             </button>
           </form>
-          <small>By subscribing, you agree to our Privacy Policy.</small>
+          <small>We value your privacy. No spam, only premium updates.</small>
         </div>
       </section>
     </>

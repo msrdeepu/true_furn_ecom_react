@@ -84,10 +84,7 @@ export function UserDashboardLayout({
       <aside className={`dash-sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="dash-sidebar-head">
           <a className="dash-brand" href="/account">
-            <span className="dash-brand-icon">
-              <Icon className="icon-sm" name="chair" />
-            </span>
-            <strong>TRUE FURN</strong>
+            <img src="/logos/tree_furn_logo.png" alt="TREEFURN" className="brand-logo" />
           </a>
           <button
             aria-label="Close sidebar"

@@ -156,6 +156,8 @@ export type ApiVariant = {
     }
     variant: {
         name: string | null
+        vname?: string | null
+        variant_model: string | null
         sku: string | null
         barcode: string | null
         status: string
@@ -177,6 +179,8 @@ export type ApiVariant = {
     inventory: {
         enabled: boolean
         stock_status: string | null
+        stock_detail?: string | null
+        available_after_days?: number | null
         quantity: string | null
         min_order_qty: string | null
         max_order_qty: string | null
@@ -224,6 +228,32 @@ export type ApiVariant = {
     }
 }
 
+export type ApiCategoryVariant = {
+    id: number
+    product_id: number
+    product_name: string | null
+    variant_name: string | null
+    vname?: string | null
+    color: string | null
+    size: string | null
+    mrp: string | number
+    price: string | number
+    offer_price: string | number | null
+    stock: number | string | null
+    totalstock: number | string | null
+    images: string[]
+}
+
+export type ApiCategoryResponse = {
+    status: boolean
+    category: {
+        id: number
+        name: string
+        slug: string
+    }
+    variants: ApiCategoryVariant[]
+}
+
 /** Constructs a full image URL from the relative paths returned by the backend */
 export function getImageUrl(path: string | null | undefined): string | null {
     if (!path) return null
@@ -246,6 +276,11 @@ export const productsApi = {
         const data = await apiFetch<{ status: boolean; data: ApiVariant[] }>('/api/variants')
         return data.data
     },
+
+    /** Fetch products by category slug */
+    async getByCategory(slug: string): Promise<ApiCategoryResponse> {
+        return apiFetch<ApiCategoryResponse>(`/api/category/${slug}/products`)
+    },
 }
 
 // ─── Cart API ────────────────────────────────────────────────────────────────
@@ -259,6 +294,7 @@ export type ApiCartItem = {
     size_label?: string
     product_name?: string
     brand_name?: string
+    variant_model?: string
     name?: string // fallback
     price: string | number
     image?: string // legacy fallback
@@ -544,6 +580,7 @@ export type ApiOrderItem = {
     quantity: number
     price: number
     unit_total: number
+    variant_model?: string | null
     tax_amount?: number
     slab?: number
 }
@@ -562,6 +599,9 @@ export type ApiOrder = {
     created_at: string
     items?: ApiOrderItem[]
     address?: any // Replace with ApiAddress if available in same file or import
+    coupon_code?: string | null
+    discount_type?: string | null
+    discount_amount?: number
 }
 
 export type ApiOrderDetails = {
@@ -581,6 +621,7 @@ export type ApiOrderDetails = {
         variant: {
             id: number;
             name: string;
+            variant_model: string | null;
             hsn_code: string;
             tax_mode: string;
             cgst_percent: number;
@@ -652,6 +693,25 @@ export const profileApi = {
         return apiFetch('/api/profile/password', {
             method: 'PUT',
             body: JSON.stringify(data),
+        })
+    },
+}
+
+// ─── Coupon API ──────────────────────────────────────────────────────────────
+export type ApiCoupon = {
+    id: number
+    code: string
+    type: 'PERCENT' | 'FLAT'
+    discount: number
+}
+
+export const couponApi = {
+    /** Verify a promo code */
+    async verify(code: string): Promise<{ status: boolean; message: string; data?: ApiCoupon }> {
+        await initCsrf()
+        return apiFetch('/api/coupons/verify', {
+            method: 'POST',
+            body: JSON.stringify({ code }),
         })
     },
 }

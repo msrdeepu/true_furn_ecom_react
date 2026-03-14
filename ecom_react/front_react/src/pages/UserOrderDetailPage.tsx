@@ -54,15 +54,22 @@ export function UserOrderDetailPage() {
   const { order, items, summary, tax_context, customer_address } = orderData;
   
   // Revised Tax Deduction Logic: 
-  // Prioritize the raw tax_amount column from the orders table if available.
-  const totalTaxAmount = order.tax_amount && order.tax_amount > 0 ? order.tax_amount : (summary.tax_total > 0 ? summary.tax_total : (order.amount - summary.subtotal > 0 ? (order.amount - summary.subtotal) : 0));
-  const displaySubtotal = order.amount - totalTaxAmount;
+  const orderAmt = Number(order.amount) || 0;
+  const discAmt = Number(order.discount_amount) || 0;
+  const summaryTax = Number(summary.tax_total) || 0;
+  const orderTax = Number(order.tax_amount) || 0;
+  const summarySub = Number(summary.subtotal) || 0;
+
+  const totalTaxAmount = orderTax > 0 ? orderTax : (summaryTax > 0 ? summaryTax : (orderAmt - summarySub > 0 ? (orderAmt - summarySub) : 0));
+  
+  // Calculate displaySubtotal as GROSS (Pre-Coupon) subtotal
+  const displaySubtotal = (orderAmt + discAmt) - totalTaxAmount;
 
   // Split logic for fallback display
   const isInterState = tax_context?.supply_type === 'inter_state';
-  const fallbackCGST = totalTaxAmount > 0 && !isInterState && summary.cgst_total === 0 ? totalTaxAmount / 2 : summary.cgst_total;
-  const fallbackSGST = totalTaxAmount > 0 && !isInterState && summary.sgst_total === 0 ? totalTaxAmount / 2 : summary.sgst_total;
-  const fallbackIGST = totalTaxAmount > 0 && isInterState && summary.igst_total === 0 ? totalTaxAmount : summary.igst_total;
+  const fallbackCGST = totalTaxAmount > 0 && !isInterState && (Number(summary.cgst_total) || 0) === 0 ? totalTaxAmount / 2 : (Number(summary.cgst_total) || 0);
+  const fallbackSGST = totalTaxAmount > 0 && !isInterState && (Number(summary.sgst_total) || 0) === 0 ? totalTaxAmount / 2 : (Number(summary.sgst_total) || 0);
+  const fallbackIGST = totalTaxAmount > 0 && isInterState && (Number(summary.igst_total) || 0) === 0 ? totalTaxAmount : (Number(summary.igst_total) || 0);
 
   // Calculate Shipping Fee dynamically
 
@@ -78,7 +85,7 @@ export function UserOrderDetailPage() {
         <div className="order-header-elite">
           <div className="order-id-block-elite">
             <h2>
-              Order <span>#{orderData.order_id}</span>
+              Order <span>#{order.id}</span>
             </h2>
             <div className="order-meta-elite">
               <span className="order-date-elite">
@@ -131,7 +138,15 @@ export function UserOrderDetailPage() {
                         </div>
                         <div className="order-item-info">
                           <h4 className="order-item-title">{item.product?.name}</h4>
-                          <span className="text-xs font-bold text-gray-400">Variant: {item.variant?.name || 'Standard'}</span>
+                           <div className="order-item-metadata" style={{ fontSize: '0.7rem', fontWeight: 600, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.2rem' }}>
+                              <span style={{ color: '#475569' }}>{item.variant?.name || 'Standard'}</span>
+                              {item.variant?.variant_model && <span style={{ opacity: 0.3 }}>•</span>}
+                              {item.variant?.variant_model && (
+                                <span className="text-primary bg-primary/5 px-2 py-0.5 rounded border border-primary/10 tracking-wider">
+                                  {item.variant.variant_model}
+                                </span>
+                              )}
+                           </div>
                           <div className="order-item-meta mt-1">
                             <span className="meta-pill primary">
                                Qty: {item.quantity}
@@ -167,9 +182,18 @@ export function UserOrderDetailPage() {
                     <span className="summary-label-elite">Subtotal (Without Tax)</span>
                     <span className="summary-value-elite text-gray-700">{formatINR(displaySubtotal)}</span>
                   </div>
+
+                  {order.discount_amount && order.discount_amount > 0 && (
+                    <div className="summary-row-elite">
+                      <div className="flex flex-col">
+                        <span className="summary-label-elite text-primary">Coupon Discount</span>
+                        <span className="coupon-summary-badge" style={{ alignSelf: 'flex-start' }}>{order.coupon_code}</span>
+                      </div>
+                      <span className="summary-value-elite text-primary">-{formatINR(order.discount_amount)}</span>
+                    </div>
+                  )}
                   
                   {/* Dynamic Tax Rows */}
-                  {/* Dynamic Tax Rows (Including Fallbacks) */}
                   {fallbackCGST > 0 && (
                       <div className="summary-row-elite">
                         <span className="summary-label-elite text-xs">CGST</span>
@@ -257,21 +281,6 @@ export function UserOrderDetailPage() {
           </div>
 
           <div className="order-sidebar">
-            {/* Reference (Moved to Top) */}
-            {order.paypal_orderid && (
-              <div className="elite-card !bg-gray-900 border-none">
-                <div className="elite-card-body !p-8">
-                  <p className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em] mb-4">Transaction Reference</p>
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10 select-all backdrop-blur-sm">
-                    <code className="text-[11px] break-all font-mono text-gray-300 leading-relaxed font-bold tracking-tight">{order.paypal_orderid}</code>
-                  </div>
-                  <p className="text-[10px] text-gray-500 font-bold mt-4 flex items-center gap-2">
-                    <Icon name="lock" className="icon-xs" />
-                    Secure encrypted transaction
-                  </p>
-                </div>
-              </div>
-            )}
 
             {/* Customer Details */}
             <div className="elite-card">

@@ -106,7 +106,7 @@ export function UserDashboardPage() {
             />
             <div className="shipment-info">
               <h4>{latestOrder.items?.[0]?.name || 'Recent Order'}</h4>
-              <p>Order #{latestOrder.paypal_orderid || latestOrder.id} • Standard Shipping</p>
+              <p>Order #{latestOrder.id} • Standard Shipping</p>
               <div className="shipment-track">
                 <div className="active-line" style={{ width: `${getStatusProgress(latestOrder.status)}%` }} />
               </div>
@@ -147,7 +147,7 @@ export function UserDashboardPage() {
               ) : (
                 orders.slice(0, 5).map((order) => (
                   <tr key={order.id}>
-                    <td>#{order.paypal_orderid || order.id}</td>
+                    <td>#{order.id}</td>
                     <td>{new Date(order.created_at).toLocaleDateString()}</td>
                     <td>{order.items?.length || 0} Items</td>
                     <td>{formatINR(order.amount)}</td>

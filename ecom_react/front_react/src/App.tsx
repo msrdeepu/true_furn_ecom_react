@@ -15,6 +15,8 @@ import { UserOrderDetailPage } from './pages/UserOrderDetailPage'
 import { UserAccountSettingsPage } from './pages/UserAccountSettingsPage'
 import { UserShippingAddressesPage } from './pages/UserShippingAddressesPage'
 import { SitePage } from './pages/SitePage'
+import { ContactPage } from './pages/ContactPage'
+import { CategoryProductsPage } from './pages/CategoryProductsPage'
 
 function PageSkeleton() {
   return (
@@ -130,6 +132,13 @@ function App() {
         </MainLayout>
       )
     }
+    if (path.startsWith('/category/')) {
+      return (
+        <MainLayout>
+          <CategoryProductsPage />
+        </MainLayout>
+      )
+    }
     if (
       path === '/account' ||
       path === '/dashboard' ||
@@ -195,6 +204,13 @@ function App() {
       return (
         <MainLayout>
           <SitePage slug="disclaimer" />
+        </MainLayout>
+      )
+    }
+    if (path === '/contact') {
+      return (
+        <MainLayout>
+          <ContactPage />
         </MainLayout>
       )
     }

@@ -15,6 +15,7 @@ export type CartProduct = {
   price: number
   image: string
   meta?: string
+  variant_model?: string
   cartId?: number // Backend row ID
 }
 
@@ -89,7 +90,8 @@ export function CartProvider({ children }: PropsWithChildren) {
           price: typeof bi.price === 'string' ? parseFloat(bi.price) : (bi.price || 0),
           image: getImageUrl(mainImage) || '',
           qty: typeof bi.quantity === 'string' ? parseInt(bi.quantity, 10) : (bi.quantity || 0),
-          meta: bi.color_name && bi.size_label ? `${bi.color_name} / Size ${bi.size_label}` : undefined
+          meta: bi.color_name && bi.size_label ? `${bi.color_name} / Size ${bi.size_label}` : undefined,
+          variant_model: bi.variant_model
         }
       })
 

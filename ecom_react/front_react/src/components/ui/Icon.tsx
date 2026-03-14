@@ -45,6 +45,14 @@ type IconName =
   | 'phonepe'
   | 'razorpay'
   | 'cash'
+  | 'kitchen'
+  | 'lightbulb'
+  | 'award'
+  | 'facebook'
+  | 'instagram'
+  | 'linkedin'
+  | 'twitter'
+  | 'youtube'
 
 type IconProps = {
   name: IconName
@@ -412,6 +420,62 @@ export function Icon({ name, className, style }: IconProps) {
           <rect x="2" y="6" width="20" height="12" rx="2" />
           <circle cx="12" cy="12" r="2" />
           <path d="M6 12h.01M18 12h.01" />
+        </svg>
+      )
+    case 'kitchen':
+      return (
+        <svg {...commonProps}>
+          <path d="M6 13.8V21h12V13.8M6 13.8V3h12v10.8M6 13.8h12" />
+          <path d="M9 17v1M15 17v1M9 7v1" />
+        </svg>
+      )
+    case 'lightbulb':
+      return (
+        <svg {...commonProps}>
+          <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .5 2.2 1.5 3.1.8.9 1.3 1.6 1.5 2.5" />
+          <path d="M9 18h6M10 22h4" />
+        </svg>
+      )
+    case 'award':
+      return (
+        <svg {...commonProps}>
+          <circle cx="12" cy="8" r="7" />
+          <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+        </svg>
+      )
+    case 'facebook':
+      return (
+        <svg {...commonProps} fill="currentColor" stroke="none">
+          <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+        </svg>
+      )
+    case 'instagram':
+      return (
+        <svg {...commonProps}>
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+        </svg>
+      )
+    case 'linkedin':
+      return (
+        <svg {...commonProps} fill="currentColor" stroke="none">
+          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+          <rect x="2" y="9" width="4" height="12" />
+          <circle cx="4" cy="4" r="2" />
+        </svg>
+      )
+    case 'twitter':
+      return (
+        <svg {...commonProps} viewBox="0 0 24 24" fill="currentColor" stroke="none">
+          <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932L18.901 1.153zM17.61 20.644h2.039L6.486 3.24H4.298l13.312 17.404z" />
+        </svg>
+      )
+    case 'youtube':
+      return (
+        <svg {...commonProps} viewBox="0 0 24 24" fill="currentColor" stroke="none">
+          <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
+          <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="white" />
         </svg>
       )
     default:

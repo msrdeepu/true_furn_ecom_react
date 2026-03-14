@@ -53,14 +53,7 @@ export function ProductDetailPage() {
     setActiveThumb(0)
   }, [variant?.id])
 
-  // Siblings: other variants belonging to the same product
-  const siblings = useMemo(
-    () =>
-      variant?.product?.id
-        ? variants.filter((v) => v.product?.id === variant.product.id && v.id !== variant.id)
-        : [],
-    [variants, variant]
-  )
+
 
   // Related: variants from other products (up to 4)
   const related = useMemo(
@@ -127,7 +120,7 @@ export function ProductDetailPage() {
   const mrp = +(variant.pricing?.mrp || 0)
   const hasDiscount = mrp > price
   const discountPct = hasDiscount ? Math.round(((mrp - price) / mrp) * 100) : 0
-  const variantDisplayName = variant.variant?.name || variant.product?.name || 'Unnamed Product'
+  const variantDisplayName = variant.variant?.vname || variant.variant?.name || variant.product?.name || 'Unnamed Product'
 
   return (
     <section className="product-page">
@@ -178,6 +171,27 @@ export function ProductDetailPage() {
 
           {/* Info */}
           <div className="product-info">
+            {(() => {
+              const inv = variant.inventory
+              let stockBadge = 'In Stock'
+              if (inv) {
+                if (inv.stock_detail?.toLowerCase() === 'out of stock' && inv.available_after_days) {
+                  stockBadge = `Ships in ${inv.available_after_days} Days`
+                } else {
+                  stockBadge = inv.stock_detail || 'In Stock'
+                }
+              }
+              // Offer priority
+              if (discountPct > 0) {
+                stockBadge = `${discountPct}% OFF`
+              }
+              
+              return (
+                <div className="pdp-status-badge">
+                  {stockBadge}
+                </div>
+              )
+            })()}
             <div className="product-bread">
               <a href="/">Home</a>
               <span>/</span>
@@ -190,8 +204,14 @@ export function ProductDetailPage() {
               )}
             </div>
 
-            <h1>{variantDisplayName}</h1>
-            <p style={{ opacity: 0.6, marginBottom: '0.5rem' }}>{variant.product?.name}</p>
+            <h1 className="mb-1">{variantDisplayName}</h1>
+            <div className="flex items-center gap-3 mb-4">
+              {variant.variant?.variant_model && (
+                <span className="text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary px-3 py-1 rounded-full">
+                  Model: {variant.variant.variant_model}
+                </span>
+              )}
+            </div>
 
             <div className="product-price">
               {formatPrice(price)}
@@ -202,17 +222,6 @@ export function ProductDetailPage() {
                     {formatPrice(mrp)}
                   </small>
                   {' '}
-                  <span
-                    style={{
-                      background: 'var(--clr-accent, #2e7d32)',
-                      color: '#fff',
-                      fontSize: '0.75rem',
-                      borderRadius: '4px',
-                      padding: '2px 6px',
-                    }}
-                  >
-                    {discountPct}% OFF
-                  </span>
                 </>
               )}
             </div>
@@ -239,24 +248,7 @@ export function ProductDetailPage() {
               {variant.fulfillment?.assembly_required && <li>Assembly required</li>}
             </ul>
 
-            {/* Other variants of same product */}
-            {siblings.length > 0 && (
-              <>
-                <div className="product-option-title">Other Variants</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
-                  {siblings.map((sib) => (
-                    <a
-                      className="btn-ghost"
-                      href={`/product?vid=${sib.id}`}
-                      key={sib.id}
-                      style={{ fontSize: '0.8rem', padding: '0.3rem 0.75rem' }}
-                    >
-                      {sib.variant?.name || sib.product?.name || 'Unnamed Variant'}
-                    </a>
-                  ))}
-                </div>
-              </>
-            )}
+
 
             <div className="product-cta-row">
               <button
@@ -268,6 +260,7 @@ export function ProductDetailPage() {
                     price,
                     image: thumbs[0],
                     meta: variant.variant?.sku ? `SKU: ${variant.variant.sku}` : undefined,
+                    variant_model: variant.variant?.variant_model || undefined
                   })
                 }
                 type="button"
@@ -284,6 +277,7 @@ export function ProductDetailPage() {
                     price,
                     image: thumbs[0],
                     meta: variant.variant?.sku ? `SKU: ${variant.variant.sku}` : undefined,
+                    variant_model: variant.variant?.variant_model || undefined
                   })
                 }
               >
@@ -291,11 +285,7 @@ export function ProductDetailPage() {
               </a>
             </div>
 
-            <div className="product-policy-row">
-              <span>Free Shipping</span>
-              <span>{variant.fulfillment?.warranty_months ? `${variant.fulfillment.warranty_months} Mo. Warranty` : '2 Year Warranty'}</span>
-              <span>30 Day Returns</span>
-            </div>
+
           </div>
         </div>
 
@@ -404,7 +394,14 @@ export function ProductDetailPage() {
                         <img src={img} alt={itemDisplayName} />
                       </div>
                     </a>
-                    <h4>{itemDisplayName}</h4>
+                    <h4>
+                      {itemDisplayName}
+                      {item.variant?.variant_model && (
+                        <span className="block text-[10px] font-black text-primary/60 uppercase tracking-tighter mt-1">
+                          Model: {item.variant.variant_model}
+                        </span>
+                      )}
+                    </h4>
                     <small>{item.product?.name}</small>
                     <strong>{formatPrice(itemPrice)}</strong>
                     <div className="shop-card-actions" style={{ marginTop: '0.75rem' }}>
@@ -416,6 +413,7 @@ export function ProductDetailPage() {
                             name: `${item.product?.name || 'Product'} – ${itemDisplayName}`,
                             price: itemPrice,
                             image: img,
+                            variant_model: item.variant?.variant_model || undefined
                           })
                         }
                         type="button"

@@ -6,10 +6,17 @@ import { useAuth } from '../../context/AuthHook'
 const navItems = [
   { href: '/', label: 'Home', icon: 'home' as const },
   { href: '/shop', label: 'Shop', icon: 'add_shopping_cart' as const },
-  { href: '#', label: 'Collections', icon: 'gift' as const },
-  { href: '/shop', label: 'Living Room', icon: 'chair' as const },
-  { href: '/shop', label: 'Bedroom', icon: 'home' as const },
-  { href: '/shop', label: 'Office', icon: 'business' as const },
+  { 
+    label: 'Categories', 
+    icon: 'menu' as const,
+    children: [
+      { href: '/category/furniture', label: 'Furniture', icon: 'chair' as const },
+      { href: '/category/sofa-and-seating', label: 'Sofa and Seating', icon: 'chair' as const },
+      { href: '/category/kitchen-and-dining', label: 'Kitchen and Dining', icon: 'kitchen' as const },
+      { href: '/category/lamps-and-lightings', label: 'Lamps', icon: 'lightbulb' as const },
+      { href: '/category/luxury', label: 'Luxury', icon: 'award' as const },
+    ]
+  },
 ]
 
 export function Header() {
@@ -80,16 +87,36 @@ export function Header() {
           <Icon name={isMobileMenuOpen ? 'close' : 'menu'} className="icon-md" />
         </button>
         <div className="nav-left">
-          <div className="brand-wrap">
-            <Icon name="chair" className="brand-icon" />
-            <h2 className="brand-title">TREEFURN</h2>
-          </div>
+          <a className="brand-wrap" href="/">
+            <img src="/logos/tree_furn_logo.png" alt="TREEFURN" className="brand-logo" />
+          </a>
           <nav className="main-nav">
             {navItems.map((item) => (
-              <a key={item.label} className="nav-link" href={item.href}>
-                <Icon name={item.icon} className="nav-link-icon" />
-                <span>{item.label}</span>
-              </a>
+              <div key={item.label} className={item.children ? 'nav-dropdown-wrap' : ''}>
+                {item.href ? (
+                  <a className="nav-link" href={item.href}>
+                    <Icon name={item.icon} className="nav-link-icon" />
+                    <span>{item.label}</span>
+                  </a>
+                ) : (
+                  <button className="nav-link nav-dropdown-trigger" type="button">
+                    <Icon name={item.icon} className="nav-link-icon" />
+                    <span>{item.label}</span>
+                    <Icon name="chevron_right" className="icon-xs dropdown-arrow" />
+                  </button>
+                )}
+                
+                {item.children && (
+                  <div className="nav-dropdown">
+                    {item.children.map((child) => (
+                      <a key={child.label} className="dropdown-link" href={child.href}>
+                        <Icon name={child.icon} className="dropdown-link-icon" />
+                        <span>{child.label}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
         </div>
@@ -138,10 +165,9 @@ export function Header() {
         className={`mobile-menu-panel${isMobileMenuOpen ? ' open' : ''}`}
       >
         <div className="mobile-menu-head">
-          <div className="brand-wrap">
-            <Icon name="chair" className="brand-icon" />
-            <h2 className="brand-title">TREEFURN</h2>
-          </div>
+          <a className="brand-wrap" href="/" onClick={closeMobileMenu}>
+            <img src="/logos/tree_furn_logo.png" alt="TREEFURN" className="brand-logo" />
+          </a>
           <button
             className="icon-btn mobile-menu-close"
             type="button"
@@ -153,18 +179,44 @@ export function Header() {
         </div>
         <nav className="mobile-menu-links">
           {navItems.map((item) => (
-            <a
-              key={`mobile-${item.label}`}
-              className="mobile-menu-link"
-              href={item.href}
-              onClick={closeMobileMenu}
-            >
-              <span className="mobile-menu-link-left">
-                <Icon name={item.icon} className="mobile-menu-link-icon" />
-                <span>{item.label}</span>
-              </span>
-              <Icon name="chevron_right" className="mobile-menu-link-chevron" />
-            </a>
+            <div key={`mobile-wrap-${item.label}`}>
+              {item.href ? (
+                <a
+                  className="mobile-menu-link"
+                  href={item.href}
+                  onClick={closeMobileMenu}
+                >
+                  <span className="mobile-menu-link-left">
+                    <Icon name={item.icon} className="mobile-menu-link-icon" />
+                    <span>{item.label}</span>
+                  </span>
+                  <Icon name="chevron_right" className="mobile-menu-link-chevron" />
+                </a>
+              ) : (
+                <div className="mobile-menu-group">
+                  <div className="mobile-group-title">
+                    <Icon name={item.icon} className="mobile-menu-link-icon" />
+                    <span>{item.label}</span>
+                  </div>
+                  <div className="mobile-group-children">
+                    {item.children?.map((child) => (
+                      <a
+                        key={`mobile-child-${child.label}`}
+                        className="mobile-menu-link-sub"
+                        href={child.href}
+                        onClick={closeMobileMenu}
+                      >
+                        <span className="mobile-menu-link-left">
+                          <Icon name={child.icon} className="mobile-menu-link-icon" />
+                          <span>{child.label}</span>
+                        </span>
+                        <Icon name="chevron_right" className="mobile-menu-link-chevron" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           ))}
         </nav>
       </div>

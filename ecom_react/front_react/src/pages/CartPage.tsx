@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { formatINR, useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthHook'
 import { useToast } from '../context/ToastContext'
-import { addressApi, paymentApi, RAZORPAY_KEY } from '../api'
-import type { ApiAddress } from '../api'
+import { addressApi, paymentApi, RAZORPAY_KEY, couponApi } from '../api'
+import type { ApiAddress, ApiCoupon } from '../api'
 import { Icon } from '../components/ui/Icon'
 import { useProducts } from '../hooks/useProducts'
 
@@ -18,6 +18,10 @@ export function CartPage() {
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'phonepe' | 'razorpay' | 'cod'>('razorpay')
 
+  const [promoCode, setPromoCode] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState<ApiCoupon | null>(null)
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false)
+
   const { variants } = useProducts()
 
   useEffect(() => {
@@ -25,6 +29,13 @@ export function CartPage() {
       fetchAddresses()
     }
   }, [user])
+
+  useEffect(() => {
+    if (items.length === 0 && appliedCoupon) {
+      setAppliedCoupon(null)
+      setPromoCode('')
+    }
+  }, [items.length, appliedCoupon])
 
   const fetchAddresses = async () => {
     setIsLoadingAddresses(true)
@@ -43,9 +54,35 @@ export function CartPage() {
     }
   }
 
-  let computedSubtotal = 0;
-  let totalTaxBreakup = 0;
-  let totalExclusiveTax = 0;
+  const handleApplyCoupon = async () => {
+    if (!promoCode.trim()) return
+    if (items.length === 0) {
+      showToast('Add items to your cart before applying a coupon', 'info')
+      return
+    }
+    setIsValidatingCoupon(true)
+    try {
+      const res = await couponApi.verify(promoCode)
+      if (res.status && res.data) {
+        setAppliedCoupon(res.data)
+        showToast('Coupon applied successfully!', 'success')
+      } else {
+        showToast(res.message || 'Invalid coupon', 'error')
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Validation failed', 'error')
+    } finally {
+      setIsValidatingCoupon(false)
+    }
+  }
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null)
+    setPromoCode('')
+  }
+
+  let baseSubtotal = 0;
+  let totalTaxAmount = 0;
   let totalMrp = 0;
 
   const enrichedItems = items.map(item => {
@@ -53,33 +90,34 @@ export function CartPage() {
     const variant = variants.find(v => v.id.toString() === vId);
     
     const qty = item.qty;
-    const price = item.price;
-    const lineTotal = price * qty;
-    computedSubtotal += lineTotal;
+    const itemPrice = item.price; // This is the API price (could be incl or excl)
+    let lineTotal = itemPrice * qty;
 
     let taxAmount = 0;
     let taxLabel = 'GST';
     let taxPercent = 0;
-    let mrp = price;
+    let mrp = itemPrice;
+    let lineBaseAmount = lineTotal;
 
     if (variant) {
       taxPercent = parseFloat((variant.tax as any)?.tax || variant.tax?.percent || '0');
       taxLabel = (variant.tax as any)?.label || 'GST';
       const taxMode = variant.tax?.mode?.toLowerCase() || 'inclusive';
-      mrp = parseFloat(variant.pricing?.mrp || price.toString());
+      mrp = parseFloat(variant.pricing?.mrp || itemPrice.toString());
 
       if (taxPercent > 0) {
         if (taxMode === 'exclusive') {
           taxAmount = lineTotal * (taxPercent / 100);
-          totalExclusiveTax += taxAmount;
+          lineBaseAmount = lineTotal;
         } else {
-          // Inclusive: Tax is already inside lineTotal
           taxAmount = lineTotal - (lineTotal / (1 + taxPercent / 100));
+          lineBaseAmount = lineTotal - taxAmount;
         }
       }
     }
     
-    totalTaxBreakup += taxAmount;
+    baseSubtotal += lineBaseAmount;
+    totalTaxAmount += taxAmount;
     totalMrp += (mrp * qty);
 
     return {
@@ -87,12 +125,23 @@ export function CartPage() {
       taxAmount,
       taxPercent,
       taxLabel,
-      mrp
+      mrp,
+      lineBaseAmount,
+      variantModel: variant?.variant?.variant_model
     }
   });
 
-  const totalDiscount = totalMrp - computedSubtotal;
-  const grandTotal = computedSubtotal + totalExclusiveTax;
+  let discountAmount = 0
+  if (appliedCoupon) {
+    if (appliedCoupon.type === 'PERCENT') {
+      discountAmount = baseSubtotal * (appliedCoupon.discount / 100)
+    } else {
+      discountAmount = appliedCoupon.discount
+    }
+  }
+
+  const productDiscount = totalMrp - (baseSubtotal + totalTaxAmount);
+  const grandTotal = baseSubtotal + totalTaxAmount - discountAmount;
 
   const handleCheckout = async () => {
     if (!user) {
@@ -110,11 +159,16 @@ export function CartPage() {
     setIsProcessing(true)
 
     try {
+      console.log('Final Totals:', {
+        subtotal: baseSubtotal,
+        tax: totalTaxAmount,
+        grand: grandTotal
+      })
       const orderPayload = {
         user_id: user!.id,
         amount: Math.round(grandTotal),
         email: user!.email,
-        order_tax_amount: totalTaxBreakup,
+        order_tax_amount: totalTaxAmount,
         address_id: selectedAddressId,
         items: enrichedItems.map(item => {
           const vId = item.id.includes('variant-') ? item.id.replace('variant-', '') : item.id;
@@ -128,7 +182,10 @@ export function CartPage() {
             item_tax_amount: item.taxAmount,
             slab: item.taxPercent
           }
-        })
+        }),
+        coupon_code: appliedCoupon?.code || null,
+        discount_type: appliedCoupon?.type || null,
+        discount_amount: discountAmount
       };
 
       if (paymentMethod === 'cod') {
@@ -256,54 +313,93 @@ export function CartPage() {
                   <div className="cart-item-image">
                     <img alt={item.name} src={item.image} />
                   </div>
-                  <div className="cart-item-main">
-                    <h3>{item.name}</h3>
-                    <p>{item.meta || 'Premium furniture selection'}</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.25rem 0' }}>
-                       <span className="line-price" style={{ margin: 0 }}>{formatINR(item.price)}</span>
-                       {item.mrp > item.price && (
-                         <span style={{ textDecoration: 'line-through', opacity: 0.5, fontSize: '0.8rem' }}>{formatINR(item.mrp)}</span>
-                       )}
+                  
+                  <div className="cart-item-info">
+                    <h3 className="cart-item-name">{item.name}</h3>
+                    <div className="cart-item-metadata">
+                        {item.variantModel && <span style={{ color: 'var(--primary)', background: 'rgb(23 84 207 / 0.1)', padding: '3px 10px', borderRadius: '6px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{item.variantModel}</span>}
+                        {item.variantModel && item.meta && <span style={{ opacity: 0.3 }}>•</span>}
+                        {item.meta && <span style={{ color: '#475569' }}>{item.meta}</span>}
                     </div>
                     {item.taxPercent > 0 && (
-                        <span style={{ display: 'inline-block', fontSize: '0.7rem', background: '#f5f5f5', padding: '2px 6px', borderRadius: '4px', border: '1px solid #eee', color: '#666', marginTop: '4px' }}>
-                           {item.taxLabel} {item.taxPercent}% 
-                           {item.taxAmount > 0 ? ` (+${formatINR(item.taxAmount)})` : ' (Inclusive)'}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                            {item.taxLabel} {item.taxPercent}% 
+                          </span>
+                          <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#cbd5e1' }}>|</span>
+                          <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8' }}>
+                            {item.taxAmount > 0 ? `+${formatINR(item.taxAmount)}` : 'Incl.'}
+                          </span>
+                        </div>
                     )}
-                    <div className="cart-item-actions">
-                      <div className="qty-box">
-                        <button onClick={() => decreaseQty(item.id)} type="button">
-                          -
-                        </button>
-                        <span>{item.qty}</span>
-                        <button onClick={() => increaseQty(item.id)} type="button">
-                          +
-                        </button>
-                      </div>
-                      <button
-                        className="remove-btn"
-                        onClick={() => removeFromCart(item.id)}
-                        type="button"
-                      >
-                        Remove
-                      </button>
-                    </div>
                   </div>
-                  <strong className="cart-item-total">
-                    {formatINR(item.price * item.qty)}
-                  </strong>
+
+                  <div className="cart-item-actions-cluster" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', justifyContent: 'center' }}>
+                    <div className="qty-box" style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', height: '38px', borderRadius: '10px' }}>
+                      <button onClick={() => decreaseQty(item.id)} style={{ width: '36px', fontSize: '1.1rem', color: '#64748b' }} type="button"> – </button>
+                      <span style={{ minWidth: '32px', textAlign: 'center', fontWeight: 800, fontSize: '1rem', color: '#1e293b' }}>{item.qty}</span>
+                      <button onClick={() => increaseQty(item.id)} style={{ width: '36px', fontSize: '1.1rem', color: '#64748b' }} type="button"> + </button>
+                    </div>
+                    
+                    <button
+                      className="remove-btn-elite"
+                      onClick={() => removeFromCart(item.id)}
+                      type="button"
+                      title="Remove Item"
+                      style={{ padding: '10px', borderRadius: '12px' }}
+                    >
+                      <Icon name="trash" style={{ width: '20px', height: '20px' }} />
+                    </button>
+                  </div>
+
+                  <div className="cart-item-price-col">
+                    <span className="line-price" style={{ marginBottom: '0.1rem' }}>
+                      {formatINR(item.lineBaseAmount / item.qty)} <span style={{ opacity: 0.5, fontWeight: 500 }}>/ unit</span>
+                    </span>
+                    <strong style={{ fontSize: '1.6rem', fontWeight: 900, color: '#1e293b', letterSpacing: '-0.02em' }}>
+                      {formatINR(item.lineBaseAmount)}
+                    </strong>
+                  </div>
                 </article>
               ))}
             </div>
 
-            <div className="cart-bottom-actions">
-              <a href="/shop">Continue Shopping</a>
-              <div className="promo-box">
-                <input placeholder="Promo code" type="text" />
-                <button type="button">Apply</button>
+            {items.length > 0 && (
+              <div className="cart-bottom-actions">
+                <a href="/shop">Continue Shopping</a>
+                <div className="promo-box">
+                  {appliedCoupon ? (
+                    <div className="applied-coupon-badge">
+                      <Icon name="award" className="icon-xs" style={{ color: 'var(--primary)' }} />
+                      <span className="flex-1">
+                        Code <strong>{appliedCoupon.code}</strong> Applied
+                      </span>
+                      <button type="button" onClick={removeCoupon} className="coupon-close-btn" title="Remove Coupon">
+                        <Icon name="close" className="icon-xs" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <input 
+                        placeholder="Enter Promo Code..." 
+                        type="text" 
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                        onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                      />
+                      <button 
+                        className="promo-btn-elite"
+                        type="button" 
+                        onClick={handleApplyCoupon}
+                        disabled={isValidatingCoupon || !promoCode.trim()}
+                      >
+                        {isValidatingCoupon ? 'Validating...' : 'Apply Code'}
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <aside className="cart-summary">
@@ -312,23 +408,30 @@ export function CartPage() {
               <span>Total MRP</span>
               <strong>{formatINR(totalMrp)}</strong>
             </div>
-            {totalDiscount > 0 && (
+            {productDiscount > 0 && (
             <div className="summary-row" style={{ color: 'var(--clr-accent, #2e7d32)' }}>
-              <span>Discount</span>
-              <strong>-{formatINR(totalDiscount)}</strong>
+              <span>Product Discount</span>
+              <strong>-{formatINR(productDiscount)}</strong>
             </div>
             )}
             <div className="summary-row">
               <span>Subtotal</span>
-              <strong>{formatINR(computedSubtotal)}</strong>
+              <strong>{formatINR(baseSubtotal)}</strong>
             </div>
+            {appliedCoupon && (
+              <div className="summary-row" style={{ color: 'var(--primary)', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span>Coupon Discount</span>
+                  <span className="coupon-summary-badge">
+                    {appliedCoupon.code}
+                  </span>
+                </div>
+                <strong>-{formatINR(discountAmount)}</strong>
+              </div>
+            )}
             <div className="summary-row">
-              <span>Shipping Charges</span>
-              <span className="badge-pill-elite badge-primary-lite">Additional</span>
-            </div>
-            <div className="summary-row">
-              <span>Tax ({totalExclusiveTax > 0 ? 'Exclusive' : 'Inclusive'})</span>
-              <strong>{totalExclusiveTax > 0 ? `+${formatINR(totalExclusiveTax)}` : 'Included'}</strong>
+              <span>Tax (GST)</span>
+              <strong>{totalTaxAmount > 0 ? `+${formatINR(totalTaxAmount)}` : 'Included'}</strong>
             </div>
             <div className="summary-total">
               <span>Final Total</span>
@@ -337,6 +440,16 @@ export function CartPage() {
             {user ? (
               <>
                 <div className="checkout-addresses">
+                  <div className="shipping-info-alert">
+                    <div className="shipping-alert-content">
+                      <Icon name="info" style={{ width: '18px', height: '18px', color: 'var(--primary)' }} />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span className="shipping-alert-title">Shipping Charges</span>
+                        <span className="shipping-alert-note">Calculated based on your location</span>
+                      </div>
+                    </div>
+                    <span className="badge-pill-elite badge-primary-lite">Additional</span>
+                  </div>
                   <div className="flex-between mb-4">
                     <p className="summary-section-title">Shipping Address</p>
                     <a href="/account/addresses" className="text-primary text-xs font-bold">Manage</a>
@@ -433,7 +546,7 @@ export function CartPage() {
             <p className="summary-note">Secure checkout guaranteed</p>
             <div className="delivery-box">
               <small>Estimated Delivery</small>
-              <p>4-7 business days</p>
+              <p>1-7 business days</p>
             </div>
           </aside>
         </div>

@@ -32,7 +32,7 @@ export function UserOrderHistoryPage() {
   }
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = (order.paypal_orderid || order.id.toString()).toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = order.id.toString().toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'All Status' || order.status === statusFilter
     return matchesSearch && matchesStatus
   })
@@ -105,7 +105,7 @@ export function UserOrderHistoryPage() {
                   <tr key={order.id}>
                     <td>
                       <a href={`/account/orders/${order.id}`} className="order-link">
-                        #{order.paypal_orderid || order.id}
+                        #{order.id}
                       </a>
                     </td>
                     <td>{new Date(order.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</td>
