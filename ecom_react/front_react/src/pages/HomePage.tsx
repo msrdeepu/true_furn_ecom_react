@@ -1,9 +1,13 @@
+import { useEffect, useState, useRef } from 'react'
+import ReCAPTCHA from 'react-google-recaptcha'
 import { Icon } from '../components/ui/Icon'
 import { useCart } from '../context/CartContext'
 import { useProducts } from '../hooks/useProducts'
-import { getImageUrl } from '../api'
+import { useToast } from '../context/ToastContext'
+import { getImageUrl, productsApi, whatsappApi, type ApiFeaturedProduct, type ApiTopSeller } from '../api'
 
-const featuredItems = [
+const featuredCollections = [
+// ... (rest of collections)
   {
     title: 'Living Room',
     subtitle: 'Sofas, Coffee Tables, Lighting',
@@ -29,10 +33,78 @@ const PLACEHOLDER =
 
 export function HomePage() {
   const { addToCart } = useCart()
-  const { variants, isLoading } = useProducts()
+  const { showToast } = useToast()
+  useProducts()
+  
+  const [featuredProducts, setFeaturedProducts] = useState<ApiFeaturedProduct[]>([])
+  const [isFeaturedLoading, setIsFeaturedLoading] = useState(true)
+
+  const [topSellers, setTopSellers] = useState<ApiTopSeller[]>([])
+  const [isTopSellersLoading, setIsTopSellersLoading] = useState(true)
+
+  // WhatsApp Subscription State
+  const waRecaptchaRef = useRef<ReCAPTCHA>(null)
+  const [isSubscribing, setIsSubscribing] = useState(false)
+  const [waData, setWaData] = useState({ name: '', phone: '' })
+
+  useEffect(() => {
+    fetchFeaturedProducts()
+    fetchTopSellers()
+  }, [])
+
+  const fetchFeaturedProducts = async () => {
+    try {
+      const data = await productsApi.getFeatured()
+      setFeaturedProducts(data)
+    } catch (err) {
+      console.error('Failed to fetch featured products', err)
+    } finally {
+      setIsFeaturedLoading(false)
+    }
+  }
+
+  const fetchTopSellers = async () => {
+    try {
+      const data = await productsApi.getTopSellers()
+      setTopSellers(data)
+    } catch (err) {
+      console.error('Failed to fetch top sellers', err)
+    } finally {
+      setIsTopSellersLoading(false)
+    }
+  }
+
+  const handleWaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const captchaToken = waRecaptchaRef.current?.getValue()
+    if (!captchaToken) {
+      showToast('Please complete the reCAPTCHA verification.', 'error')
+      return
+    }
+
+    setIsSubscribing(true)
+    try {
+      const res = await whatsappApi.subscribe({
+        ...waData,
+        captcha_token: captchaToken
+      })
+      if (res.status) {
+        showToast('Successfully subscribed to WhatsApp updates!', 'success')
+        setWaData({ name: '', phone: '' })
+        waRecaptchaRef.current?.reset()
+      } else {
+        showToast(res.message || 'Subscription failed.', 'error')
+      }
+    } catch (err) {
+      console.error('WhatsApp subscription error:', err)
+      showToast('An error occurred. Please try again.', 'error')
+    } finally {
+      setIsSubscribing(false)
+    }
+  }
 
   // Show up to 4 active variants as trending items
-  const trendingItems = variants.filter((v) => v.variant.status === 'Active').slice(0, 4)
 
   return (
     <>
@@ -78,6 +150,85 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* NEW: Featured Products Section with Infinity Scroll */}
+      <section className="featured-products-section" style={{ padding: '4.5rem 0', background: '#f8fafc' }}>
+        <div className="container">
+          <div className="section-head" style={{ marginBottom: '2.5rem' }}>
+            <div>
+              <h2 style={{ fontSize: '2.4rem', fontWeight: 900, marginBottom: '0.5rem' }}>Featured Products</h2>
+              <p style={{ color: '#64748b' }}>Handpicked pieces from our newest arrivals, curated just for you.</p>
+            </div>
+          </div>
+
+          <div className="marquee-container">
+            <div className="marquee-track">
+              {isFeaturedLoading
+                ? Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="featured-product-card" style={{ height: '400px' }}>
+                    <div className="skeleton-card" style={{ height: '100%' }} />
+                  </div>
+                ))
+                : [...featuredProducts, ...featuredProducts].map((fp, idx) => {
+                  const imgSrc = getImageUrl(fp.image) ?? PLACEHOLDER
+                  const priceValue = parseFloat(fp.price.selling_price)
+                  const mrpValue = parseFloat(fp.price.mrp)
+                  const hasDiscount = mrpValue > priceValue
+                  const discountPct = hasDiscount ? Math.round(((mrpValue - priceValue) / mrpValue) * 100) : 0
+
+                  return (
+                    <div key={`${fp.featured_id}-${idx}`} className="featured-product-card">
+                      <div className="fp-image-wrap">
+                        {discountPct > 0 && (
+                          <div className="shop-badge" style={{ background: '#ef4444' }}>{discountPct}% OFF</div>
+                        )}
+                        <img src={imgSrc} alt={fp.variant.name} />
+                        
+                        <div className="fp-overlay">
+                          <button
+                            className="fp-btn fp-btn-primary"
+                            onClick={() => addToCart({
+                              id: `variant-${fp.variant_id}`,
+                              name: `${fp.product.name} – ${fp.variant.name}`,
+                              price: priceValue,
+                              image: imgSrc,
+                            })}
+                          >
+                            <Icon name="add_shopping_cart" className="icon-sm" /> Add to Cart
+                          </button>
+                          <a href={`/product?vid=${fp.variant_id}`} className="fp-btn fp-btn-outline">
+                            <Icon name="visibility" className="icon-sm" /> View Details
+                          </a>
+                        </div>
+                      </div>
+                      
+                      <div className="product-meta" style={{ padding: '1.2rem' }}>
+                        <div>
+                          <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1e293b' }}>{fp.variant.name}</h4>
+                          {fp.variant.model && (
+                            <div className="badge-model" style={{ marginTop: '0.3rem', fontSize: '0.7rem' }}>
+                              MODEL: {fp.variant.model}
+                            </div>
+                          )}
+                          <div style={{ marginTop: '0.8rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <strong style={{ fontSize: '1.3rem', color: 'var(--primary)' }}>
+                              Rs {priceValue.toLocaleString('en-IN')}
+                            </strong>
+                            {hasDiscount && (
+                              <span style={{ fontSize: '0.9rem', color: '#94a3b8', textDecoration: 'line-through' }}>
+                                Rs {mrpValue.toLocaleString('en-IN')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="featured-section">
         <div className="container">
           <div className="section-head">
@@ -94,7 +245,7 @@ export function HomePage() {
           </div>
 
           <div className="featured-grid">
-            {featuredItems.map((item) => (
+            {featuredCollections.map((item) => (
               <div key={item.title} className="featured-card">
                 <img src={item.image} alt={item.title} />
                 <div className="featured-overlay">
@@ -110,78 +261,70 @@ export function HomePage() {
 
       <section className="trending-section">
         <div className="container">
-          <h2>Trending Now</h2>
-          <div className="trending-row">
-            {isLoading
-              ? Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="product-card">
-                  <div className="skeleton-card" style={{ height: '240px', borderRadius: '12px' }} />
-                  <div className="product-meta" style={{ padding: '0.75rem 0' }}>
-                    <div className="skeleton-line skeleton-line-lg" />
+          <h2 style={{ fontSize: '2.4rem', fontWeight: 900, marginBottom: '2.5rem' }}>Trending Now</h2>
+          
+          <div className="marquee-container trending-marquee-container">
+            <div className="marquee-track trending-marquee-track">
+              {isTopSellersLoading
+                ? Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="product-card" style={{ height: '400px' }}>
+                    <div className="skeleton-card" style={{ height: '100%' }} />
                   </div>
-                </div>
-              ))
-              : trendingItems.map((variant) => {
-                const imgSrc = getImageUrl(variant.media.images[0]) ?? PLACEHOLDER
-                const price = +(variant.pricing.selling_price ?? 0)
-                const mrp = +(variant.pricing.mrp ?? 0)
-                const hasDiscount = mrp > price
-                const discountPct = hasDiscount ? Math.round(((mrp - price) / mrp) * 100) : 0
-                
-                const inv = variant.inventory
-                let stockBadge = 'In Stock'
-                if (inv) {
-                  if (inv.stock_detail?.toLowerCase() === 'out of stock' && inv.available_after_days) {
-                    stockBadge = `Ships in ${inv.available_after_days} Days`
-                  } else {
-                    stockBadge = inv.stock_detail || 'In Stock'
-                  }
-                }
-                const discountBadge = discountPct > 0 ? `${discountPct}% OFF` : null
+                ))
+                : [...topSellers, ...topSellers].map((ts, idx) => {
+                  const imgSrc = getImageUrl(ts.image) ?? PLACEHOLDER
+                  const priceValue = parseFloat(ts.price)
+                  const mrpValue = parseFloat(ts.mrp)
+                  const hasDiscount = mrpValue > priceValue
+                  const discountPct = hasDiscount ? Math.round(((mrpValue - priceValue) / mrpValue) * 100) : 0
+                  const discountBadge = discountPct > 0 ? `${discountPct}% OFF` : null
 
-                return (
-                  <a key={variant.id} className="product-card" href={`/product?vid=${variant.id}`}>
-                    <div className="product-image-wrap">
-                      <div className="shop-badge">{stockBadge}</div>
-                      <img src={imgSrc} alt={variant.variant.name ?? ''} />
-                      <button
-                        className="product-cart-btn"
-                        onClick={(event) => {
-                          event.preventDefault()
-                          event.stopPropagation()
-                          addToCart({
-                            id: `variant-${variant.id}`,
-                            name: `${variant.product.name} – ${variant.variant.name}`,
-                            price,
-                            image: imgSrc,
-                          })
-                        }}
-                        type="button"
-                      >
-                        <Icon name="add_shopping_cart" className="icon-sm" />
-                      </button>
-                    </div>
-                    <div className="product-meta">
-                      <div>
-                        <h4 style={{ fontSize: '1.4rem' }}>{variant.variant.vname || variant.variant.name || variant.product.name}</h4>
-                        {variant.variant.variant_model && (
-                          <div className="badge-model">
-                            MODEL: {variant.variant.variant_model}
-                          </div>
-                        )}
-                        <div className="rating-line" style={{ marginTop: '0.4rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <strong style={{ fontSize: '1.6rem', display: 'block', margin: '0.3rem 0' }}>
-                              Rs {price.toLocaleString('en-IN')}
-                            </strong>
-                            {discountBadge && <span className="badge-discount">{discountBadge}</span>}
+                  return (
+                    <div key={`${ts.id}-${idx}`} className="top-seller-card">
+                      <div className="product-image-wrap ts-image-wrap">
+                        <div className="shop-badge">Top Seller</div>
+                        <img src={imgSrc} alt={ts.variant_name} />
+                        
+                        <div className="fp-overlay">
+                          <button
+                            className="fp-btn fp-btn-primary"
+                            onClick={() => addToCart({
+                              id: `variant-${ts.variant_id}`,
+                              name: `${ts.product_name} – ${ts.variant_name}`,
+                              price: priceValue,
+                              image: imgSrc,
+                            })}
+                          >
+                            <Icon name="add_shopping_cart" className="icon-sm" /> Add to Cart
+                          </button>
+                          <a href={`/product?vid=${ts.variant_id}`} className="fp-btn fp-btn-outline">
+                            <Icon name="visibility" className="icon-sm" /> View Details
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="product-meta" style={{ padding: '1.2rem' }}>
+                        <div>
+                          <h4 style={{ fontSize: '1.2rem', fontWeight: 800 }}>{ts.variant_name || ts.product_name}</h4>
+                          {ts.model && (
+                            <div className="badge-model" style={{ marginTop: '0.3rem' }}>
+                              MODEL: {ts.model}
+                            </div>
+                          )}
+                          <div className="rating-line" style={{ marginTop: '0.8rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <strong style={{ fontSize: '1.4rem', color: 'var(--primary)' }}>
+                                Rs {priceValue.toLocaleString('en-IN')}
+                              </strong>
+                              {discountBadge && <span className="badge-discount">{discountBadge}</span>}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </a>
-                )
-              })}
+                  )
+                })}
+            </div>
           </div>
         </div>
       </section>
@@ -230,12 +373,36 @@ export function HomePage() {
             Get exclusive early access to new collections and home styling tips 
             directly on your phone.
           </p>
-          <form className="whatsapp-form-elite" onSubmit={(e) => e.preventDefault()}>
-            <input placeholder="Your Name" type="text" required />
-            <input placeholder="WhatsApp Number" type="tel" required />
-            <button className="btn-primary" type="submit">
-              Join Now
-            </button>
+          <form className="whatsapp-form-elite" onSubmit={handleWaSubmit}>
+            <div className="wa-input-row">
+              <input 
+                placeholder="Your Name" 
+                type="text" 
+                value={waData.name}
+                onChange={(e) => setWaData({ ...waData, name: e.target.value })}
+                required 
+              />
+              <input 
+                placeholder="WhatsApp Number" 
+                type="tel" 
+                value={waData.phone}
+                onChange={(e) => setWaData({ ...waData, phone: e.target.value })}
+                required 
+              />
+            </div>
+            
+            <div className="wa-captcha-row">
+              <ReCAPTCHA
+                ref={waRecaptchaRef}
+                sitekey="6LccKowsAAAAAJzuNCa-K0H3VKupzHj6VfMZna9G"
+              />
+            </div>
+
+            <div className="wa-submit-row">
+              <button className="btn-whatsapp-join" type="submit" disabled={isSubscribing}>
+                {isSubscribing ? 'Joining...' : 'Join Now'}
+              </button>
+            </div>
           </form>
           <small>We value your privacy. No spam, only premium updates.</small>
         </div>

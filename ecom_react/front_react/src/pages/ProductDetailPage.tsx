@@ -3,6 +3,8 @@ import { Icon } from '../components/ui/Icon'
 import { useCart } from '../context/CartContext'
 import { useProducts } from '../hooks/useProducts'
 import { getImageUrl } from '../api'
+import { DefaultDeliveryInfo } from '../components/product/DefaultDeliveryInfo'
+import { DefaultWarrantyInfo } from '../components/product/DefaultWarrantyInfo'
 
 const PLACEHOLDER =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuBiilh-Tazwkh6k9coXcjo1wpUqJCB47BjrSDa_py9foAo_80cEn5aap3Os7v0wTOMcg9267UFViieJRXaHga0Aq-P9LttYp2CZWuzjq7BY24pDh3RxB22-ZzAEvtAnBwXwEARyrRcvtLZx9LS7W2lU09pQr90rdVZoK6vpLn5p7pBn_tFa2sedOz5ONpjXCkbEy5t4IrqpCqgjUV-ELa5bQPCafGkV-nIdjfgV14_ZDmTSqRYCfgfjuzWo5NnAu9pjd-efCzWu6pCn'
@@ -297,7 +299,7 @@ export function ProductDetailPage() {
                 className={`tab-btn ${activeTab === 'description' ? 'active' : ''}`}
                 onClick={() => setActiveTab('description')}
               >
-                Description
+                Product Description
               </button>
               <button
                 className={`tab-btn ${activeTab === 'specification' ? 'active' : ''}`}
@@ -315,7 +317,7 @@ export function ProductDetailPage() {
                 className={`tab-btn ${activeTab === 'seller' ? 'active' : ''}`}
                 onClick={() => setActiveTab('seller')}
               >
-                Seller Info
+                Delivery Details
               </button>
               <button
                 className={`tab-btn ${activeTab === 'warranty' ? 'active' : ''}`}
@@ -357,7 +359,7 @@ export function ProductDetailPage() {
                   {variant.content.seller_notes_html ? (
                     <div dangerouslySetInnerHTML={{ __html: variant.content.seller_notes_html }} />
                   ) : (
-                    <p style={{ opacity: 0.5 }}>Seller information is not provided for this variant.</p>
+                    <DefaultDeliveryInfo />
                   )}
                 </div>
               )}
@@ -366,7 +368,7 @@ export function ProductDetailPage() {
                   {variant.content.warranty_html ? (
                     <div dangerouslySetInnerHTML={{ __html: variant.content.warranty_html }} />
                   ) : (
-                    <p style={{ opacity: 0.5 }}>Detailed warranty policy information is not available.</p>
+                    <DefaultWarrantyInfo />
                   )}
                 </div>
               )}

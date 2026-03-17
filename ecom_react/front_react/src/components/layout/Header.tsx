@@ -6,6 +6,8 @@ import { useAuth } from '../../context/AuthHook'
 const navItems = [
   { href: '/', label: 'Home', icon: 'home' as const },
   { href: '/shop', label: 'Shop', icon: 'add_shopping_cart' as const },
+  { href: '/about', label: 'About', icon: 'info' as const },
+  { href: '/contact', label: 'Contact', icon: 'mail' as const },
   { 
     label: 'Categories', 
     icon: 'menu' as const,
@@ -21,7 +23,7 @@ const navItems = [
 
 export function Header() {
   const { totalItems } = useCart()
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -136,28 +138,60 @@ export function Header() {
             <Icon name="shopping_cart" className="icon-md" />
             {totalItems > 0 && <span className="cart-badge">{totalItems}</span>}
           </a>
-          <a
-            className="icon-btn"
-            style={{ display: 'flex', alignItems: 'center' }}
-            href={user ? '/account/dashboard' : '/login'}
-            aria-label={user ? 'My Account' : 'Sign In'}
-            title={user ? `Hi, ${user.name}` : 'Sign In'}
-          >
-            {user ? (
-              <div className="header-user-avatar">
-                {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
-                ) : (
-                  <>
-                    {user.name.charAt(0).toUpperCase()}
-                    {user.lname ? user.lname.charAt(0).toUpperCase() : ''}
-                  </>
-                )}
+          {user ? (
+            <div className="user-dropdown-wrap">
+              <button
+                className="icon-btn"
+                aria-label="My Account"
+                title={`Hi, ${user.name}`}
+                type="button"
+              >
+                <div className="header-user-avatar">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.name} style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
+                  ) : (
+                    <>
+                      {user.name.charAt(0).toUpperCase()}
+                      {user.lname ? user.lname.charAt(0).toUpperCase() : ''}
+                    </>
+                  )}
+                </div>
+              </button>
+              <div className="user-dropdown">
+                <div className="user-dropdown-info">
+                  <span className="user-dropdown-name">{user.name} {user.lname}</span>
+                  <span className="user-dropdown-email">{user.email}</span>
+                </div>
+                <a className="dropdown-link" href="/account/dashboard">
+                  <Icon name="dashboard" className="dropdown-link-icon" />
+                  <span>Dashboard</span>
+                </a>
+                <div className="user-dropdown-divider" />
+                <button 
+                  className="dropdown-link" 
+                  style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                  onClick={() => {
+                    logout().then(() => {
+                      window.location.href = '/login'
+                    })
+                  }}
+                  type="button"
+                >
+                  <Icon name="logout" className="dropdown-link-icon" />
+                  <span>Logout</span>
+                </button>
               </div>
-            ) : (
+            </div>
+          ) : (
+            <a
+              className="icon-btn"
+              href="/login"
+              aria-label="Sign In"
+              title="Sign In"
+            >
               <Icon name="person" className="icon-md" />
-            )}
-          </a>
+            </a>
+          )}
         </div>
       </div>
       <div

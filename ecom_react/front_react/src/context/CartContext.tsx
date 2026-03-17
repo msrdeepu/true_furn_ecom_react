@@ -32,7 +32,7 @@ type CartContextValue = {
   decreaseQty: (id: string) => void
   removeFromCart: (id: string) => void
   syncWithBackend: () => Promise<void>
-  clearCart: () => void
+  clearCart: (forcedUserId?: number) => Promise<void>
 }
 
 const STORAGE_KEY = 'truefurn_cart'
@@ -229,9 +229,18 @@ export function CartProvider({ children }: PropsWithChildren) {
     [items]
   )
 
-  const clearCart = () => {
+  const clearCart = async (forcedUserId?: number) => {
     setItems([])
     window.localStorage.removeItem(STORAGE_KEY)
+    
+    const targetUserId = forcedUserId || user?.id
+    if (targetUserId) {
+      try {
+        await cartApi.clear(targetUserId)
+      } catch (err) {
+        console.error('Failed to clear backend cart:', err)
+      }
+    }
   }
 
   const value: CartContextValue = {

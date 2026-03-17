@@ -16,6 +16,7 @@ import { UserAccountSettingsPage } from './pages/UserAccountSettingsPage'
 import { UserShippingAddressesPage } from './pages/UserShippingAddressesPage'
 import { SitePage } from './pages/SitePage'
 import { ContactPage } from './pages/ContactPage'
+import { AboutPage } from './pages/AboutPage'
 import { CategoryProductsPage } from './pages/CategoryProductsPage'
 
 function PageSkeleton() {
@@ -211,6 +212,13 @@ function App() {
       return (
         <MainLayout>
           <ContactPage />
+        </MainLayout>
+      )
+    }
+    if (path === '/about') {
+      return (
+        <MainLayout>
+          <AboutPage />
         </MainLayout>
       )
     }

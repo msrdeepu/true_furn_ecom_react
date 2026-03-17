@@ -62,10 +62,13 @@ export function UserOrderHistoryPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option>All Status</option>
-              <option>Processing</option>
-              <option>Shipped</option>
-              <option>Delivered</option>
-              <option>Cancelled</option>
+              <option value="ORDERPLACED">Order Placed</option>
+              <option value="PENDING">Pending</option>
+              <option value="ASSIGNED">Assigned</option>
+              <option value="SHIPPED">Shipped</option>
+              <option value="OUTFORDELIVERY">Out For Delivery</option>
+              <option value="DELIVERED">Delivered</option>
+              <option value="CANCELED">Canceled</option>
             </select>
             <select className="filter-select">
               <option>Last 6 Months</option>
@@ -110,7 +113,7 @@ export function UserOrderHistoryPage() {
                     </td>
                     <td>{new Date(order.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</td>
                     <td>
-                      <span className={`status-pill ${order.status.toLowerCase().replace(/\s+/g, '-')}`}>
+                      <span className={`status-pill ${order.status.toLowerCase()}`}>
                         {order.status}
                       </span>
                     </td>
@@ -118,8 +121,8 @@ export function UserOrderHistoryPage() {
                     <td>
                       <div className="flex gap-2">
                         <a href={`/account/orders/${order.id}`} className="btn-action-sm">VIEW DETAILS</a>
-                        {order.status.toLowerCase() === 'shipped' && <button className="btn-action-sm">TRACK</button>}
-                        {order.status.toLowerCase() === 'delivered' && <button className="btn-action-sm">INVOICE</button>}
+                        {order.status === 'SHIPPED' && <button className="btn-action-sm">TRACK</button>}
+                        {order.status === 'DELIVERED' && <button className="btn-action-sm">INVOICE</button>}
                       </div>
                     </td>
                   </tr>

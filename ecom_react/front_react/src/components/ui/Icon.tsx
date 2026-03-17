@@ -53,6 +53,12 @@ type IconName =
   | 'linkedin'
   | 'twitter'
   | 'youtube'
+  | 'check_circle'
+  | 'pending'
+  | 'assignment_ind'
+  | 'moped'
+  | 'done_all'
+  | 'cancel'
 
 type IconProps = {
   name: IconName
@@ -476,6 +482,54 @@ export function Icon({ name, className, style }: IconProps) {
         <svg {...commonProps} viewBox="0 0 24 24" fill="currentColor" stroke="none">
           <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
           <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="white" />
+        </svg>
+      )
+    case 'check_circle':
+      return (
+        <svg {...commonProps}>
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+      )
+    case 'pending':
+      return (
+        <svg {...commonProps}>
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="16" y2="16" />
+        </svg>
+      )
+    case 'assignment_ind':
+      return (
+        <svg {...commonProps}>
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <polyline points="16 11 18 13 22 9" />
+        </svg>
+      )
+    case 'moped':
+      return (
+        <svg {...commonProps}>
+          <circle cx="6" cy="18" r="2" />
+          <circle cx="18" cy="18" r="2" />
+          <path d="M12 18h4l1-7H9l-1 7h4z" />
+          <path d="M9 11V7a2 2 0 0 1 2-2h2" />
+          <path d="M13 5l1 2" />
+        </svg>
+      )
+    case 'done_all':
+      return (
+        <svg {...commonProps}>
+          <polyline points="20 6 9 17 4 12" />
+          <polyline points="20 12 13 19 9.5 15.5" />
+        </svg>
+      )
+    case 'cancel':
+      return (
+        <svg {...commonProps}>
+          <circle cx="12" cy="12" r="10" />
+          <line x1="15" y1="9" x2="9" y2="15" />
+          <line x1="9" y1="9" x2="15" y2="15" />
         </svg>
       )
     default:

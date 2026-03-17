@@ -51,7 +51,7 @@ export function UserOrderDetailPage() {
     )
   }
 
-  const { order, items, summary, tax_context, customer_address } = orderData;
+  const { order, items, summary, tax_context, customer_address, delivery_partner } = orderData;
   
   // Revised Tax Deduction Logic: 
   const orderAmt = Number(order.amount) || 0;
@@ -243,38 +243,106 @@ export function UserOrderDetailPage() {
                     <Icon name="history" className="icon-sm" />
                   </div>
                   Order Journey
+                  <div className="flex-1 text-right">
+                    <span className={`inline-flex items-center gap-2 px-6 py-2 rounded-2xl text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 ${
+                      order.payment_status?.toLowerCase() === 'paid' || order.payment_status?.toLowerCase() === 'completed'
+                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-100/50 shadow-[0_4px_12px_-4px_rgba(16,185,129,0.12)]'
+                        : 'bg-amber-50 text-amber-600 border border-amber-100/50 shadow-[0_4px_12px_-4px_rgba(245,158,11,0.12)]'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${
+                        order.payment_status?.toLowerCase() === 'paid' || order.payment_status?.toLowerCase() === 'completed' ? 'bg-emerald-500' : 'bg-amber-500'
+                      }`}></span>
+                      Payment: {order.payment_status || 'Unpaid'}
+                    </span>
+                  </div>
                 </h3>
               </div>
               <div className="elite-card-body">
                 <div className="order-timeline-elite">
-                  <div className="timeline-item-elite active">
-                    <div className="timeline-marker-elite"></div>
-                    <div className="timeline-content-elite">
-                      <h4>Order Placed</h4>
-                      <p>Successfully received on {new Date(order.created_at).toLocaleString([], { dateStyle: 'long', timeStyle: 'short' })}</p>
-                    </div>
-                  </div>
-                  <div className={`timeline-item-elite ${order.payment_status?.toLowerCase() === 'completed' || order.payment_status?.toLowerCase() === 'paid' ? 'active' : ''}`}>
-                    <div className="timeline-marker-elite"></div>
-                    <div className="timeline-content-elite">
-                      <h4>Payment Status</h4>
-                      <p className="font-black !text-gray-900 uppercase tracking-widest text-xs mt-1">Status: {order.payment_status || 'NOT INITIALIZED'}</p>
-                    </div>
-                  </div>
-                  <div className={`timeline-item-elite ${['shipped', 'delivered'].includes(order.status?.toLowerCase() || '') ? 'active' : ''}`}>
-                    <div className="timeline-marker-elite"></div>
-                    <div className="timeline-content-elite">
-                      <h4>Shipment Details</h4>
-                      <p>{order.status === 'Shipped' || order.status === 'Delivered' ? 'Your package is on its way to the delivery address.' : 'Your order is currently being prepared for dispatch.'}</p>
-                    </div>
-                  </div>
-                  <div className={`timeline-item-elite ${order.status?.toLowerCase() === 'delivered' ? 'active' : ''}`}>
-                    <div className="timeline-marker-elite"></div>
-                    <div className="timeline-content-elite">
-                      <h4>Delivery</h4>
-                      <p>{order.status === 'Delivered' ? 'Package has been delivered successfully. Thank you for shopping!' : 'We will notify you once the package is delivered.'}</p>
-                    </div>
-                  </div>
+                  {(() => {
+                    const currentStatus = order.status || 'ORDERPLACED';
+                    const isCanceled = currentStatus === 'CANCELED';
+                    
+                    const steps = [
+                      { 
+                        key: 'ORDERPLACED', 
+                        label: 'Order Placed', 
+                        icon: 'check_circle', 
+                        done: true,
+                        desc: `Successfully received on ${new Date(order.created_at).toLocaleString([], { dateStyle: 'long', timeStyle: 'short' })}`
+                      },
+                      { 
+                        key: 'PENDING', 
+                        label: 'Pending', 
+                        icon: 'pending', 
+                        done: ['PENDING', 'ASSIGNED', 'SHIPPED', 'OUTFORDELIVERY', 'DELIVERED'].includes(currentStatus) && !isCanceled,
+                        desc: 'Your order is pending confirmation before assignment.'
+                      },
+                      { 
+                        key: 'ASSIGNED', 
+                        label: 'Assigned', 
+                        icon: 'assignment_ind', 
+                        done: ['ASSIGNED', 'SHIPPED', 'OUTFORDELIVERY', 'DELIVERED'].includes(currentStatus) && !isCanceled,
+                        desc: 'Order has been assigned to a delivery partner.'
+                      },
+                      { 
+                        key: 'SHIPPED', 
+                        label: 'Shipped', 
+                        icon: 'local_shipping', 
+                        done: ['SHIPPED', 'OUTFORDELIVERY', 'DELIVERED'].includes(currentStatus) && !isCanceled,
+                        desc: 'Your package is on its way to the delivery address.'
+                      },
+                      { 
+                        key: 'OUTFORDELIVERY', 
+                        label: 'Out For Delivery', 
+                        icon: 'moped', 
+                        done: ['OUTFORDELIVERY', 'DELIVERED'].includes(currentStatus) && !isCanceled,
+                        desc: 'Your package is out for delivery with our partner.'
+                      },
+                      { 
+                        key: 'DELIVERED', 
+                        label: 'Delivered', 
+                        icon: 'done_all', 
+                        done: currentStatus === 'DELIVERED',
+                        desc: 'Package has been delivered successfully. Thank you!'
+                      }
+                    ];
+
+                    return (
+                      <>
+                        {steps.map((step, idx) => {
+                          // If current step is cancelled, we might want to handle it differently
+                          // But user wants "Cancelled" as an option too.
+                          // Usually Cancelled replaces the current or next step.
+                          const isActive = step.done || (currentStatus === step.key && !isCanceled);
+                          
+                          return (
+                            <div key={idx} className={`timeline-item-elite ${isActive ? 'active' : ''}`}>
+                              <div className="timeline-marker-elite">
+                                <Icon name={step.icon as any} className="timeline-icon-elite" />
+                              </div>
+                              <div className="timeline-content-elite">
+                                <h4>{step.label}</h4>
+                                <p>{step.desc}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        
+                        {isCanceled && (
+                          <div className="timeline-item-elite canceled">
+                            <div className="timeline-marker-elite">
+                              <Icon name="cancel" className="timeline-icon-elite" />
+                            </div>
+                            <div className="timeline-content-elite">
+                              <h4>Canceled</h4>
+                              <p>This order has been canceled. For queries, please contact our support team.</p>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
@@ -356,6 +424,51 @@ export function UserOrderDetailPage() {
                 )}
               </div>
             </div>
+
+            {/* Delivery Partner Details */}
+            {delivery_partner && (
+              <div className="elite-card">
+                <div className="elite-card-header !py-6 !px-8">
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Delivery Partner</h3>
+                </div>
+                <div className="elite-card-body !p-8">
+                  <div className="flex items-center gap-5 mb-8">
+                    <div className="w-16 h-16 bg-blue-50 rounded-2xl flex-center text-primary border border-blue-100">
+                      <Icon name="moped" className="icon-md" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-2xl text-gray-900 capitalize">{delivery_partner.name}</h4>
+                      <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-wider">Active Courier</span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    {delivery_partner.email && (
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 flex-shrink-0 bg-gray-50 rounded-xl flex-center text-gray-500 border border-gray-100">
+                          <Icon name="mail" className="icon-xs" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider mb-0.5">Email Address</p>
+                          <p className="text-sm font-bold text-gray-900 truncate">{delivery_partner.email}</p>
+                        </div>
+                      </div>
+                    )}
+                    {delivery_partner.mobile && (
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 flex-shrink-0 bg-gray-50 rounded-xl flex-center text-gray-500 border border-gray-100">
+                          <Icon name="phone" className="icon-xs" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider mb-0.5">Contact Number</p>
+                          <p className="text-sm font-bold text-gray-900">{delivery_partner.mobile}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
           </div>
         </div>

@@ -1,6 +1,66 @@
+import { useState, useRef } from 'react'
+import ReCAPTCHA from 'react-google-recaptcha'
 import { Icon } from '../components/ui/Icon'
+import { useToast } from '../context/ToastContext'
+import { contactApi } from '../api'
 
 export function ContactPage() {
+  const { showToast } = useToast()
+  const recaptchaRef = useRef<ReCAPTCHA>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    mobile: '',
+    subject: 'General Inquiry',
+    address: '',
+    message: '',
+  })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    const captchaToken = recaptchaRef.current?.getValue()
+    if (!captchaToken) {
+      showToast('Please complete the reCAPTCHA verification.', 'error')
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const res = await contactApi.submit({
+        ...formData,
+        captcha_token: captchaToken
+      })
+
+      if (res.status) {
+        showToast('Your message has been sent successfully!', 'success')
+        setFormData({
+          name: '',
+          email: '',
+          mobile: '',
+          subject: 'General Inquiry',
+          address: '',
+          message: '',
+        })
+        recaptchaRef.current?.reset()
+      } else {
+        showToast(res.message || 'Failed to send message.', 'error')
+      }
+    } catch (err) {
+      console.error('Contact form submission error:', err)
+      showToast('An unexpected error occurred. Please try again.', 'error')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <div className="contact-page-wrapper">
       <div className="container">
@@ -17,26 +77,51 @@ export function ContactPage() {
             <h1 className="contact-title">Get in Touch</h1>
             <p className="contact-subtitle">Have a question or looking for a custom piece? We'd love to hear from you.</p>
 
-            <form className="contact-form-elite" onSubmit={(e) => e.preventDefault()}>
-              <div className="form-row-dual">
-                <div className="form-group">
-                  <label>First Name</label>
-                  <input type="text" placeholder="e.g. John" />
-                </div>
-                <div className="form-group">
-                  <label>Last Name</label>
-                  <input type="text" placeholder="e.g. Doe" />
-                </div>
+            <form className="contact-form-elite" onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label>Full Name</label>
+                <input 
+                  type="text" 
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="e.g. John Doe" 
+                  required 
+                />
               </div>
 
-              <div className="form-group">
-                <label>Email Address</label>
-                <input type="email" placeholder="john@example.com" />
+              <div className="form-row-dual">
+                <div className="form-group">
+                  <label>Email Address</label>
+                  <input 
+                    type="email" 
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="john@example.com" 
+                    required 
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Mobile Number</label>
+                  <input 
+                    type="tel" 
+                    name="mobile"
+                    value={formData.mobile}
+                    onChange={handleChange}
+                    placeholder="e.g. +91 9876543210" 
+                    required 
+                  />
+                </div>
               </div>
 
               <div className="form-group">
                 <label>Subject</label>
-                <select>
+                <select 
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                >
                   <option>General Inquiry</option>
                   <option>Custom Furniture Request</option>
                   <option>Order Status</option>
@@ -45,12 +130,41 @@ export function ContactPage() {
               </div>
 
               <div className="form-group">
-                <label>Message</label>
-                <textarea rows={5} placeholder="How can we help you?"></textarea>
+                <label>Address (Optional)</label>
+                <input 
+                  type="text" 
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  placeholder="e.g. 123 Street Name, City" 
+                />
               </div>
 
-              <button className="btn-primary" style={{ width: '100%', padding: '1rem', marginTop: '1rem' }}>
-                Send Message
+              <div className="form-group">
+                <label>Message</label>
+                <textarea 
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  rows={5} 
+                  placeholder="How can we help you?"
+                  required
+                ></textarea>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <ReCAPTCHA
+                  ref={recaptchaRef}
+                  sitekey="6LccKowsAAAAAJzuNCa-K0H3VKupzHj6VfMZna9G"
+                />
+              </div>
+
+              <button 
+                className="btn-primary" 
+                style={{ width: '100%', padding: '1rem', marginTop: '1rem' }}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Sending...' : 'Send Message'}
               </button>
             </form>
           </div>

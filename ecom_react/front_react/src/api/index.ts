@@ -264,6 +264,39 @@ export function getImageUrl(path: string | null | undefined): string | null {
     return `${BASE_URL}/${clean}`
 }
 
+export type ApiFeaturedProduct = {
+    featured_id: number
+    variant_id: number
+    product: {
+        id: number
+        name: string
+        slug: string
+    }
+    variant: {
+        name: string
+        model: string | null
+        sku: string | null
+    }
+    price: {
+        mrp: string
+        selling_price: string
+        offer_price: string
+    }
+    image: string | null
+}
+
+export type ApiTopSeller = {
+    id: number
+    variant_id: number
+    product_name: string
+    product_slug: string
+    variant_name: string
+    model: string | null
+    price: string
+    mrp: string
+    image: string | null
+}
+
 export const productsApi = {
     /** Fetch all products */
     async all(): Promise<ApiProduct[]> {
@@ -280,6 +313,18 @@ export const productsApi = {
     /** Fetch products by category slug */
     async getByCategory(slug: string): Promise<ApiCategoryResponse> {
         return apiFetch<ApiCategoryResponse>(`/api/category/${slug}/products`)
+    },
+
+    /** Fetch featured products */
+    async getFeatured(): Promise<ApiFeaturedProduct[]> {
+        const data = await apiFetch<{ status: boolean; data: ApiFeaturedProduct[] }>('/api/featured-products')
+        return data.data
+    },
+
+    /** Fetch top sellers */
+    async getTopSellers(): Promise<ApiTopSeller[]> {
+        const data = await apiFetch<{ status: boolean; data: ApiTopSeller[] }>('/api/topseller')
+        return data.data
     },
 }
 
@@ -336,6 +381,14 @@ export const cartApi = {
     /** Get total number of items in cart for a user */
     async count(userId: number): Promise<{ count: number }> {
         return apiFetch(`/api/cart-items/count/${userId}`)
+    },
+
+    /** Clear all cart items for logged user */
+    async clear(userId: number): Promise<{ status: boolean; message: string }> {
+        await initCsrf()
+        return apiFetch(`/api/cart/clear/${userId}`, {
+            method: 'POST',
+        })
     },
 }
 
@@ -613,6 +666,13 @@ export type ApiOrderDetails = {
         supply_type: string;
         applied_tax: string;
     };
+    delivery_partner: {
+        id: number;
+        name: string | null;
+        mobile: string | null;
+        email: string | null;
+        vendor_type: string | null;
+    } | null;
     customer_address: any;
     items: {
         id: number;
@@ -716,3 +776,38 @@ export const couponApi = {
     },
 }
 
+// ─── Contact API ─────────────────────────────────────────────────────────────
+export const contactApi = {
+    /** Submit contact form */
+    async submit(data: {
+        name: string
+        email: string
+        mobile: string
+        subject: string
+        address: string
+        message: string
+        captcha_token: string
+    }): Promise<{ status: boolean; message: string }> {
+        await initCsrf()
+        return apiFetch('/api/contact/store', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        })
+    },
+}
+
+// ─── WhatsApp Subscription API ───────────────────────────────────────────────
+export const whatsappApi = {
+    /** Subscribe to WhatsApp updates */
+    async subscribe(data: {
+        name: string
+        phone: string
+        captcha_token: string
+    }): Promise<{ status: boolean; message: string }> {
+        await initCsrf()
+        return apiFetch('/api/whatsapp/subscribe', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        })
+    },
+}

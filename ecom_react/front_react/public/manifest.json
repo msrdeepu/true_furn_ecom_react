@@ -1,9 +1,15 @@
 {
-  "name": "True Furn",
-  "short_name": "TrueFurn",
+  "name": "TREEFURN",
+  "short_name": "TREEFURN",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f6f6f8",
   "theme_color": "#1754cf",
-  "icons": []
+  "icons": [
+    {
+      "src": "/logos/tree_furn_logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ]
 }

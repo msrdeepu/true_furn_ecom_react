@@ -23,10 +23,13 @@ export function UserDashboardPage() {
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     if (searchParams.get('payment') === 'success') {
+      const urlUserId = searchParams.get('user_id');
+      const forcedUserId = urlUserId ? parseInt(urlUserId, 10) : undefined;
+
       // Clear URL params without reloading to prevent double triggers
       window.history.replaceState({}, document.title, window.location.pathname);
       
-      clearCart();
+      clearCart(forcedUserId);
       showToast('Payment successful! Your order has been placed.', 'success');
       
       // Fire confetti celebration matching the Razorpay flow

@@ -5,6 +5,7 @@ import { useToast } from '../context/ToastContext'
 import { addressApi, paymentApi, RAZORPAY_KEY, couponApi } from '../api'
 import type { ApiAddress, ApiCoupon } from '../api'
 import { Icon } from '../components/ui/Icon'
+import { Modal } from '../components/ui/Modal' // Added Modal import
 import { useProducts } from '../hooks/useProducts'
 
 export function CartPage() {
@@ -21,6 +22,7 @@ export function CartPage() {
   const [promoCode, setPromoCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<ApiCoupon | null>(null)
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false)
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false); // Added Modal state
 
   const { variants } = useProducts()
 
@@ -363,10 +365,20 @@ export function CartPage() {
                 </article>
               ))}
             </div>
-
             {items.length > 0 && (
               <div className="cart-bottom-actions">
-                <a href="/shop">Continue Shopping</a>
+                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                  <a href="/shop">Continue Shopping</a>
+                  <button
+                    className="text-muted text-sm font-bold flex items-center gap-1"
+                    onClick={() => setIsClearModalOpen(true)}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+                    type="button"
+                  >
+                    <Icon name="close" className="icon-xs" />
+                    Empty Cart
+                  </button>
+                </div>
                 <div className="promo-box">
                   {appliedCoupon ? (
                     <div className="applied-coupon-badge">
@@ -402,153 +414,184 @@ export function CartPage() {
             )}
           </div>
 
-          <aside className="cart-summary">
-            <h2>Order Summary</h2>
-            <div className="summary-row">
-              <span>Total MRP</span>
-              <strong>{formatINR(totalMrp)}</strong>
-            </div>
-            {productDiscount > 0 && (
-            <div className="summary-row" style={{ color: 'var(--clr-accent, #2e7d32)' }}>
-              <span>Product Discount</span>
-              <strong>-{formatINR(productDiscount)}</strong>
-            </div>
-            )}
-            <div className="summary-row">
-              <span>Subtotal</span>
-              <strong>{formatINR(baseSubtotal)}</strong>
-            </div>
-            {appliedCoupon && (
-              <div className="summary-row" style={{ color: 'var(--primary)', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span>Coupon Discount</span>
-                  <span className="coupon-summary-badge">
-                    {appliedCoupon.code}
-                  </span>
-                </div>
-                <strong>-{formatINR(discountAmount)}</strong>
-              </div>
-            )}
-            <div className="summary-row">
-              <span>Tax (GST)</span>
-              <strong>{totalTaxAmount > 0 ? `+${formatINR(totalTaxAmount)}` : 'Included'}</strong>
-            </div>
-            <div className="summary-total">
-              <span>Final Total</span>
-              <strong>{formatINR(Math.round(grandTotal))}</strong>
-            </div>
-            {user ? (
+          <Modal
+            isOpen={isClearModalOpen}
+            onClose={() => setIsClearModalOpen(false)}
+            title="Empty Cart"
+            type="danger"
+            footer={
               <>
-                <div className="checkout-addresses">
-                  <div className="shipping-info-alert">
-                    <div className="shipping-alert-content">
-                      <Icon name="info" style={{ width: '18px', height: '18px', color: 'var(--primary)' }} />
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span className="shipping-alert-title">Shipping Charges</span>
-                        <span className="shipping-alert-note">Calculated based on your location</span>
-                      </div>
-                    </div>
-                    <span className="badge-pill-elite badge-primary-lite">Additional</span>
-                  </div>
-                  <div className="flex-between mb-4">
-                    <p className="summary-section-title">Shipping Address</p>
-                    <a href="/account/addresses" className="text-primary text-xs font-bold">Manage</a>
-                  </div>
-                  
-                  {isLoadingAddresses ? (
-                    <p className="text-xs text-muted">Loading addresses...</p>
-                  ) : addresses.length === 0 ? (
-                    <div className="no-address-alert">
-                      <p>No addresses found.</p>
-                      <a href="/account/addresses" className="btn-ghost-sm">Add Address</a>
-                    </div>
-                  ) : (
-                    <div className="address-select-list">
-                      {addresses.map(addr => (
-                        <label key={addr.id} className={`address-select-card ${selectedAddressId === addr.id ? 'active' : ''}`}>
-                          <input 
-                            type="radio" 
-                            name="checkout-address" 
-                            checked={selectedAddressId === addr.id}
-                            onChange={() => setSelectedAddressId(addr.id)}
-                          />
-                          <div className="addr-info">
-                            <div className="addr-type mb-1 flex items-center gap-2">
-                              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">
-                                <Icon name={addr.a_type.toLowerCase() === 'home' ? 'home' : 'business'} className="icon-xs align-text-bottom mr-1" />
-                                {addr.a_type}
-                              </span>
-                              {addr.contact_number && (
-                                <span className="text-xs font-bold text-gray-500">
-                                  <Icon name="phone" className="icon-xs align-text-bottom mr-1" />
-                                  {addr.contact_number}
-                                </span>
-                              )}
-                            </div>
-                            <p className="addr-text text-sm font-medium text-gray-800 leading-tight">{addr.address}, {addr.city}</p>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="payment-methods" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginTop: '1.5rem' }}>
-                  <p className="summary-section-title" style={{ gridColumn: '1 / -1', marginBottom: '0.2rem' }}>Payment Method</p>
-                  <label className="payment-option">
-                    <input
-                      checked={paymentMethod === 'phonepe'}
-                      name="payment-method"
-                      onChange={() => setPaymentMethod('phonepe')}
-                      type="radio"
-                    />
-                    <Icon name="phonepe" className="icon-md" />
-                    <span>PhonePe</span>
-                  </label>
-                  <label className="payment-option">
-                    <input
-                      checked={paymentMethod === 'razorpay'}
-                      name="payment-method"
-                      onChange={() => setPaymentMethod('razorpay')}
-                      type="radio"
-                    />
-                    <Icon name="razorpay" className="icon-md" />
-                    <span>Razorpay</span>
-                  </label>
-                  <label className="payment-option" style={{ gridColumn: '1 / -1' }}>
-                    <input
-                      checked={paymentMethod === 'cod'}
-                      name="payment-method"
-                      onChange={() => setPaymentMethod('cod')}
-                      type="radio"
-                    />
-                    <Icon name="cash" className="icon-md" />
-                    <span>Cash on Delivery</span>
-                  </label>
-                </div>
                 <button
-                  className="btn-primary summary-checkout"
-                  disabled={isProcessing || items.length === 0 || !selectedAddressId}
-                  onClick={handleCheckout}
-                  type="button"
+                  className="btn-elite secondary"
+                  onClick={() => setIsClearModalOpen(false)}
                 >
-                  {isProcessing ? 'Processing...' : `Proceed with ${paymentMethod === 'phonepe' ? 'PhonePe' : paymentMethod === 'razorpay' ? 'Razorpay' : 'COD'}`}
+                  Cancel
+                </button>
+                <button
+                  className="btn-elite danger"
+                  onClick={() => {
+                    clearCart();
+                    setIsClearModalOpen(false);
+                    showToast('Cart cleared', 'info');
+                  }}
+                >
+                  Confirm
                 </button>
               </>
-            ) : (
-              <div className="login-to-checkout">
-                <p className="summary-note">Please login to proceed with payment</p>
-                <a className="btn-primary summary-checkout block text-center" href="/login?redirect=/cart" style={{ display: 'block', textAlign: 'center', lineHeight: '3rem' }}>
-                  Login to Checkout
-                </a>
+            }
+          >
+            <p>Are you sure you want to remove all items from your cart? <strong>This action cannot be undone.</strong></p>
+          </Modal>
+
+          {items.length > 0 && (
+            <aside className="cart-summary">
+              <h2>Order Summary</h2>
+              <div className="summary-row">
+                <span>Total MRP</span>
+                <strong>{formatINR(totalMrp)}</strong>
               </div>
-            )}
-            <p className="summary-note">Secure checkout guaranteed</p>
-            <div className="delivery-box">
-              <small>Estimated Delivery</small>
-              <p>1-7 business days</p>
-            </div>
-          </aside>
+              {productDiscount > 0 && (
+              <div className="summary-row" style={{ color: 'var(--clr-accent, #2e7d32)' }}>
+                <span>Product Discount</span>
+                <strong>-{formatINR(productDiscount)}</strong>
+              </div>
+              )}
+              <div className="summary-row">
+                <span>Subtotal</span>
+                <strong>{formatINR(baseSubtotal)}</strong>
+              </div>
+              {appliedCoupon && (
+                <div className="summary-row" style={{ color: 'var(--primary)', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span>Coupon Discount</span>
+                    <span className="coupon-summary-badge">
+                      {appliedCoupon.code}
+                    </span>
+                  </div>
+                  <strong>-{formatINR(discountAmount)}</strong>
+                </div>
+              )}
+              <div className="summary-row">
+                <span>Tax (GST)</span>
+                <strong>{totalTaxAmount > 0 ? `+${formatINR(totalTaxAmount)}` : 'Included'}</strong>
+              </div>
+              <div className="summary-total">
+                <span>Final Total</span>
+                <strong>{formatINR(Math.round(grandTotal))}</strong>
+              </div>
+              {user ? (
+                <>
+                  <div className="checkout-addresses">
+                    <div className="shipping-info-alert">
+                      <div className="shipping-alert-content">
+                        <Icon name="info" style={{ width: '18px', height: '18px', color: 'var(--primary)' }} />
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span className="shipping-alert-title">Shipping Charges</span>
+                          <span className="shipping-alert-note">Calculated based on your location</span>
+                        </div>
+                      </div>
+                      <span className="badge-pill-elite badge-primary-lite">Additional</span>
+                    </div>
+                    <div className="flex-between mb-4">
+                      <p className="summary-section-title">Shipping Address</p>
+                      <a href="/account/addresses" className="text-primary text-xs font-bold">Manage</a>
+                    </div>
+                    
+                    {isLoadingAddresses ? (
+                      <p className="text-xs text-muted">Loading addresses...</p>
+                    ) : addresses.length === 0 ? (
+                      <div className="no-address-alert">
+                        <p>No addresses found.</p>
+                        <a href="/account/addresses" className="btn-ghost-sm">Add Address</a>
+                      </div>
+                    ) : (
+                      <div className="address-select-list">
+                        {addresses.map(addr => (
+                          <label key={addr.id} className={`address-select-card ${selectedAddressId === addr.id ? 'active' : ''}`}>
+                            <input 
+                              type="radio" 
+                              name="checkout-address" 
+                              checked={selectedAddressId === addr.id}
+                              onChange={() => setSelectedAddressId(addr.id)}
+                            />
+                            <div className="addr-info">
+                              <div className="addr-type mb-1 flex items-center gap-2">
+                                <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">
+                                  <Icon name={addr.a_type.toLowerCase() === 'home' ? 'home' : 'business'} className="icon-xs align-text-bottom mr-1" />
+                                  {addr.a_type}
+                                </span>
+                                {addr.contact_number && (
+                                  <span className="text-xs font-bold text-gray-500">
+                                    <Icon name="phone" className="icon-xs align-text-bottom mr-1" />
+                                    {addr.contact_number}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="addr-text text-sm font-medium text-gray-800 leading-tight">{addr.address}, {addr.city}</p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="payment-methods" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginTop: '1.5rem' }}>
+                    <p className="summary-section-title" style={{ gridColumn: '1 / -1', marginBottom: '0.2rem' }}>Payment Method</p>
+                    <label className="payment-option">
+                      <input
+                        checked={paymentMethod === 'phonepe'}
+                        name="payment-method"
+                        onChange={() => setPaymentMethod('phonepe')}
+                        type="radio"
+                      />
+                      <Icon name="phonepe" className="icon-md" />
+                      <span>PhonePe</span>
+                    </label>
+                    <label className="payment-option">
+                      <input
+                        checked={paymentMethod === 'razorpay'}
+                        name="payment-method"
+                        onChange={() => setPaymentMethod('razorpay')}
+                        type="radio"
+                      />
+                      <Icon name="razorpay" className="icon-md" />
+                      <span>Razorpay</span>
+                    </label>
+                    <label className="payment-option" style={{ gridColumn: '1 / -1' }}>
+                      <input
+                        checked={paymentMethod === 'cod'}
+                        name="payment-method"
+                        onChange={() => setPaymentMethod('cod')}
+                        type="radio"
+                      />
+                      <Icon name="cash" className="icon-md" />
+                      <span>Cash on Delivery</span>
+                    </label>
+                  </div>
+                  <button
+                    className="btn-primary summary-checkout"
+                    disabled={isProcessing || items.length === 0 || !selectedAddressId}
+                    onClick={handleCheckout}
+                    type="button"
+                  >
+                    {isProcessing ? 'Processing...' : `Proceed with ${paymentMethod === 'phonepe' ? 'PhonePe' : paymentMethod === 'razorpay' ? 'Razorpay' : 'COD'}`}
+                  </button>
+                </>
+              ) : (
+                <div className="login-to-checkout">
+                  <p className="summary-note">Please login to proceed with payment</p>
+                  <a className="btn-primary summary-checkout block text-center" href="/login?redirect=/cart" style={{ display: 'block', textAlign: 'center', lineHeight: '3rem' }}>
+                    Login to Checkout
+                  </a>
+                </div>
+              )}
+              <p className="summary-note">Secure checkout guaranteed</p>
+              <div className="delivery-box">
+                <small>Estimated Delivery</small>
+                <p>1-7 business days</p>
+              </div>
+            </aside>
+          )}
         </div>
       </div>
     </section>
