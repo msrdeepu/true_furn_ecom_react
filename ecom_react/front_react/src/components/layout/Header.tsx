@@ -12,6 +12,9 @@ const navItems = [
     label: 'Categories', 
     icon: 'menu' as const,
     children: [
+      { href: '/category/living-room', label: 'Living Room', icon: 'chair' as const },
+      { href: '/category/bedroom', label: 'Bedroom', icon: 'bed' as const },
+      { href: '/category/office', label: 'Office', icon: 'business' as const },
       { href: '/category/furniture', label: 'Furniture', icon: 'chair' as const },
       { href: '/category/sofa-and-seating', label: 'Sofa and Seating', icon: 'chair' as const },
       { href: '/category/kitchen-and-dining', label: 'Kitchen and Dining', icon: 'kitchen' as const },

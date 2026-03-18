@@ -59,6 +59,7 @@ type IconName =
   | 'moped'
   | 'done_all'
   | 'cancel'
+  | 'bed'
 
 type IconProps = {
   name: IconName
@@ -530,6 +531,16 @@ export function Icon({ name, className, style }: IconProps) {
           <circle cx="12" cy="12" r="10" />
           <line x1="15" y1="9" x2="9" y2="15" />
           <line x1="9" y1="9" x2="15" y2="15" />
+        </svg>
+      )
+    case 'bed':
+      return (
+        <svg {...commonProps}>
+          <path d="M22 17v-4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v4" />
+          <path d="M22 20v-3H2v3" />
+          <path d="M2 13v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3" />
+          <path d="M7 11V9" />
+          <path d="M17 11V9" />
         </svg>
       )
     default:

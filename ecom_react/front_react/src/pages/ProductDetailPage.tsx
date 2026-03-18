@@ -269,10 +269,9 @@ export function ProductDetailPage() {
               >
                 Add to Cart
               </button>
-              <a
-                className="btn-dark buy-now-link"
-                href="/cart"
-                onClick={() =>
+              <button
+                className="btn-dark"
+                onClick={() => {
                   addToCart({
                     id: `variant-${variant.id}`,
                     name: `${variant.product?.name || 'Product'} – ${variantDisplayName}`,
@@ -280,11 +279,14 @@ export function ProductDetailPage() {
                     image: thumbs[0],
                     meta: variant.variant?.sku ? `SKU: ${variant.variant.sku}` : undefined,
                     variant_model: variant.variant?.variant_model || undefined
-                  })
-                }
+                  });
+                  // Programmatic navigation to Cart
+                  window.location.href = '/cart';
+                }}
+                type="button"
               >
                 Buy Now
-              </a>
+              </button>
             </div>
 
 

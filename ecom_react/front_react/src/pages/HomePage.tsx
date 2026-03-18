@@ -11,18 +11,21 @@ const featuredCollections = [
   {
     title: 'Living Room',
     subtitle: 'Sofas, Coffee Tables, Lighting',
+    href: '/category/living-room',
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuAAVkT360PGFttzAE2aT3usnBm_dBYbfrzT2IdQf17DT0ltaYit0dlYb7IDXPFJRsW9YYQd3DTI7K6Kf6Ug9qQgjM-atC0MU13idZFyLJKuXFJBbo-Ml8PPCXnYm-AZvs1xSDnnarbtzX8jC0zkpAkeVUPfpTiRLkEFvoNR1PJB_6RL15Q-imiGcOaZ0P7qmZucqMho1NIngkonx_xKGJ9ci4zQ6dU7vvRQm1K_OGtISpCELz0V9bYxkso_L_yLTtoZa5akKEC9Lkvf',
   },
   {
     title: 'Bedroom',
     subtitle: 'Beds, Nightstands, Textiles',
+    href: '/category/bedroom',
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuAMLZy1doiS-FhB6JOjdlAKrKoRzfRkBr7LJD_yWrRJPlpDLZEOmUA-Dc3Cc6rseksbqs7VbslO_XCbyOUiWLJXQRuPXfNwkqOmiNynzTynk43_yexS1gnL_wbBOxOdTJqsMVQV2DfHjEt6uMFJgwkNUzulp16SfPV2yezMmlvVtUpCgOgbnmu6gB0JoqklIZnQ7m2EyqimJAbjyHkTzEzEuj0C8hjXIUbyGi28CRcKexWDFv_Vkf6phMMP5yT6tYBCqwahmGxiVy1W',
   },
   {
     title: 'Office',
     subtitle: 'Desks, Ergonomic Chairs, Storage',
+    href: '/category/office',
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuDhslV3MriTEtC8QTFn6QSBhEKsOlcVTI96-pcaaq7z3_WAu0OSQjjvpiacvZWcq8d9FKIpOJ5Kyf3DSy6Obh9pncvosUZfX7kzzfaW6lmm1I-tYEaiLH3-fHCtsJCC_sBzMzeYJ0JuUNBoJHSXAmFX6K8GpVvdaPaDr0oZ0WkrzZXmX4zrPMhZXJuCbPK7wg6-etLq4jGW-bmWQxmP-XrjzPtkg4JkaQrRB18U0CawPnsD1jmKnpHI8-kUI05dlb3Zhx_Gl0yMFcc8',
   },
@@ -246,14 +249,14 @@ export function HomePage() {
 
           <div className="featured-grid">
             {featuredCollections.map((item) => (
-              <div key={item.title} className="featured-card">
+              <a key={item.title} className="featured-card" href={item.href}>
                 <img src={item.image} alt={item.title} />
                 <div className="featured-overlay">
                   <h3>{item.title}</h3>
                   <p>{item.subtitle}</p>
                   <span>Shop Collection</span>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         </div>

@@ -123,6 +123,10 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [path, search])
+
   const route = useMemo(() => {
     if (path === '/login') return <LoginPage />
     if (path === '/signup') return <SignupPage />

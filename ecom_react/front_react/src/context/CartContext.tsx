@@ -27,7 +27,7 @@ type CartContextValue = {
   items: CartLine[]
   totalItems: number
   subtotal: number
-  addToCart: (product: CartProduct, qty?: number) => void
+  addToCart: (product: CartProduct, qty?: number) => Promise<void> | void
   increaseQty: (id: string) => void
   decreaseQty: (id: string) => void
   removeFromCart: (id: string) => void
@@ -146,12 +146,16 @@ export function CartProvider({ children }: PropsWithChildren) {
     // Optimistic local update
     setItems((prev) => {
       const existing = prev.find((item) => item.id === product.id)
+      let next: CartLine[]
       if (existing) {
-        return prev.map((item) =>
+        next = prev.map((item) =>
           item.id === product.id ? { ...item, qty: item.qty + quantity } : item
         )
+      } else {
+        next = [...prev, { ...product, qty: quantity }]
       }
-      return [...prev, { ...product, qty: quantity }]
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+      return next
     })
 
     // Backend sync
